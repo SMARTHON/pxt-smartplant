@@ -1,0 +1,14 @@
+{
+    "name": "pxt-Smartplant",
+    "version": "1.0",
+    "description": "This is the extension for Smartplant in PXT",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*"		
+    },
+    "files": [
+        "README.md",
+        "Plant.ts"
+    ],
+    "public": true
+}

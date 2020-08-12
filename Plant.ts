@@ -1,7 +1,7 @@
 /**
  * Custom blocks
  */
-//% color=#7abb4b icon="\uf06c" block="Smartplant"
+//% weight=98 color=#7abb4b icon="\uf06c" block="Smartplant"
 namespace Environment {
 
     // keep track of services

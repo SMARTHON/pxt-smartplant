@@ -240,11 +240,13 @@ namespace Environment {
 
     export function TurnMotorCW(intensity: number, pin1: AnalogPin, pin2: AnalogPin): void {
         if (intensity > 0) {
+			if(intensity>0&&intensity<400){intensity=400;}
             pins.analogWritePin(pin1, intensity);
             pins.analogWritePin(pin2, 0);
         }
         else if (intensity < 0) {
             intensity = Math.abs(intensity);
+			if(intensity>0&&intensity<400){intensity=400;}
             pins.analogWritePin(pin1, 0);
             pins.analogWritePin(pin2, intensity);
         }

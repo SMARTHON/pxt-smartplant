@@ -213,8 +213,7 @@ namespace Environment {
     //% blockId="smarthon_waterpump"
     //% block="Set Water pump to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
-    //% weight=73
-    //% blockGap=7	
+    //% weight=71
     //% advanced=true
     export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
 
@@ -225,7 +224,6 @@ namespace Environment {
     //% block="Set Humdifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=72	
-    //% blockGap=7	
     //% advanced=true
     export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
 
@@ -233,36 +231,33 @@ namespace Environment {
     }
 
 
-    //% blockId="smarthon_plantmotorfan_cw"
-    //% block="Set Motor fan clockwisely to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=71	
-    //% blockGap=7	
-    //% advanced=true
-    export function TurnMotorCW(intensity: number, pin: AnalogPin): void {
+    //% blockId="smarthon_motorfan"
+    //% block="Set Motor fan with speed %intensity at S1 %pin1 S2 %pin2"
+    //% intensity.min=-1023 intensity.max=1023
+    //% pin1.defl=AnalogPin.P14 pin2.defl=AnalogPin.P15
+    //% weight=45	
+    //%subcategory=more
 
-        //pins.analogWritePin(AnalogPin.P13, intensity);
-        serial.writeLine("(AT+pwm?pin=" + pin+ "&intensity=" + intensity + ")");
-        basic.pause(1000);
-    }
-
-    //% blockId="smarthon_plantmotorfan_acw"
-    //% block="Set Motor fan anti-clockwisely to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=70
-    //% blockGap=7	
-    //% advanced=true
-    export function TurnMotorACW(intensity: number, pin: AnalogPin): void {
-
-        //pins.analogWritePin(AnalogPin.P14, intensity);
-        serial.writeLine("(AT+pwm?pin=" + pin + "&intensity=" + intensity + ")");
-        basic.pause(1000);
+    export function TurnMotorCW(intensity: number, pin1: AnalogPin, pin2: AnalogPin): void {
+        if (intensity > 0) {
+            pins.analogWritePin(pin1, intensity);
+            pins.analogWritePin(pin2, 0);
+        }
+        else if (intensity < 0) {
+            intensity = Math.abs(intensity);
+            pins.analogWritePin(pin1, 0);
+            pins.analogWritePin(pin2, intensity);
+        }
+        else {
+            pins.analogWritePin(pin1, 0);
+            pins.analogWritePin(pin2, 0);
+        }
     }
 
     //% blockId="smarthon_plantservo"
     //% block="Set Servo to degree %degree at %pin"
     //% intensity.min=0 intensity.max=180
-    //% weight=69	blockGap=7
+    //% weight=89	
     //% advanced=true
     export function TurnServo(intensity: number, pin: AnalogPin): void {
 
@@ -298,4 +293,3 @@ namespace Environment {
 
 
 }
-

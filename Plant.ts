@@ -13,6 +13,8 @@ namespace Environment {
     //let numWindTurns = 0
     //let windMPH = 0
 
+    //--------BME280--------------------------------------------------
+
     // BME280 Addresses
     let BME280_I2C_ADDR = 0x76
     let dig_T1 = getUInt16LE(0x88)
@@ -159,6 +161,30 @@ namespace Environment {
         H = (var2 >> 12) / 1024
     }
 
+    //------------------BME280----------------------------------------------
+
+    //------------------BH1750----------------------------------------------
+
+    let BH1750_I2C_ADDR= 35;
+    pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
+
+    /**
+    * get light intensity value (0~100) from bh1750
+    */
+     //% blockId="readBH1750" block="value of light intensity(0~100) from BH1750"
+    export function getIntensity(): number {
+        let raw_value= Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
+        let ans =Math.round(Math.map(raw_value,0,3000,0,100));
+        if(ans>100){ans=100;}
+        return ans;
+    }
+
+    //------------------BH1750----------------------------------------------
+
+
+
+
+
 
     /**
      * get soil moisture value (0~100)
@@ -180,24 +206,25 @@ namespace Environment {
     }
 
 
-    /**
-     * get light intensity value (0~100)
-     * @param lightintensitypin describe parameter here, eg: AnalogPin.P1
-     */
-    //% blockId="readlightintensity" block="value of light intensity(0~100) at pin %lightintensitypin"
-    export function ReadLightIntensity(lightintensitypin: AnalogPin): number {
-        let voltage = 0;
-        let lightintensity = 0;
-        voltage = pins.map(
-            pins.analogReadPin(lightintensitypin),
-            0,
-            1023,
-            0,
-            100
-        );
-        lightintensity = voltage;
-        return Math.round(lightintensity)
-    }
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     //% blockId="smarthon_usb"
@@ -240,13 +267,13 @@ namespace Environment {
 
     export function TurnMotorCW(intensity: number, pin1: AnalogPin, pin2: AnalogPin): void {
         if (intensity > 0) {
-			if(intensity>0&&intensity<400){intensity=400;}
+            if (intensity > 0 && intensity < 400) { intensity = 400; }
             pins.analogWritePin(pin1, intensity);
             pins.analogWritePin(pin2, 0);
         }
         else if (intensity < 0) {
             intensity = Math.abs(intensity);
-			if(intensity>0&&intensity<400){intensity=400;}
+            if (intensity > 0 && intensity < 400) { intensity = 400; }
             pins.analogWritePin(pin1, 0);
             pins.analogWritePin(pin2, intensity);
         }

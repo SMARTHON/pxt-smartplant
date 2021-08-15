@@ -174,9 +174,7 @@ namespace Environment {
      //% blockId="readBH1750" block="value of light intensity(0~100) from BH1750"
     export function getIntensity(): number {
         let raw_value= Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
-        let ans =Math.round(Math.map(raw_value,0,3000,0,100));
-        if(ans>100){ans=100;}
-        return ans;
+		return raw_value;
     }
 
     //------------------BH1750----------------------------------------------

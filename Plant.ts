@@ -169,9 +169,9 @@ namespace Environment {
     pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
 
     /**
-    * get light intensity value (0~100) from bh1750
+    * get light intensity value from bh1750
     */
-     //% blockId="readBH1750" block="value of light intensity(0~100) from BH1750"
+     //% blockId="readBH1750" block="value of light intensity(lx) from BH1750"
     export function getIntensity(): number {
         let raw_value= Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
 		return raw_value;

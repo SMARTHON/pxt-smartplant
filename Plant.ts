@@ -29,6 +29,9 @@ namespace Environment {
     let _readSuccessful: boolean = false
     let _sensorresponding: boolean = false
     let _firsttime: boolean = true
+    let _last_successful_query_temperature: number = 0
+    let _last_successful_query_humidity: number = 0
+
 
     //% block="Get DHT11 at pin %dataPin|"
     function dht11_queryData(dataPin: DigitalPin) {
@@ -46,11 +49,10 @@ namespace Environment {
         let resultArray: number[] = []
         for (let index = 0; index < 40; index++) dataArray.push(false)
         for (let index = 0; index < 5; index++) resultArray.push(0)
-        _humidity = -999.0
-        _temperature = -999.0
+        _humidity = 0
+        _temperature = 0
         _readSuccessful = false
-        _sensorresponding = false
-        startTime = input.runningTimeMicros()
+
 
         //request data
         pins.digitalWritePin(dataPin, 0) //begin protocol
@@ -58,6 +60,7 @@ namespace Environment {
         pins.setPull(dataPin, PinPullMode.PullUp) //pull up data pin if needed
         pins.digitalReadPin(dataPin)
         control.waitMicros(40)
+
         if (pins.digitalReadPin(dataPin) == 1) {
             //if no respone,exit the loop to avoid Infinity loop
             pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
@@ -69,14 +72,19 @@ namespace Environment {
 
             //read data (5 bytes)
             for (let index = 0; index < 40; index++) {
-                while (pins.digitalReadPin(dataPin) == 1);
-                while (pins.digitalReadPin(dataPin) == 0);
+                startTime = input.runningTimeMicros()
+                while (pins.digitalReadPin(dataPin) == 1){
+                    endTime = input.runningTimeMicros()
+                    if ((endTime - startTime) > 150) { break; }
+                };
+                while (pins.digitalReadPin(dataPin) == 0){
+                    endTime = input.runningTimeMicros()
+                    if ((endTime - startTime) > 150) { break; }
+                };
                 control.waitMicros(28)
                 //if sensor pull up data pin for more than 28 us it means 1, otherwise 0
                 if (pins.digitalReadPin(dataPin) == 1) dataArray[index] = true
             }
-
-            endTime = input.runningTimeMicros()
 
             //convert byte number array to integer
             for (let index = 0; index < 5; index++)
@@ -92,18 +100,17 @@ namespace Environment {
 
             //read data if checksum ok
             if (_readSuccessful) {
-
-                //DHT11
                 _humidity = resultArray[0] + resultArray[1] / 100
                 _temperature = resultArray[2] + resultArray[3] / 100
-
+                _last_successful_query_humidity = _humidity
+                _last_successful_query_temperature = _temperature
+            } else {
+                _humidity = _last_successful_query_humidity
+                _temperature = _last_successful_query_temperature
             }
-
-
-            //wait 1.5 sec after query 
-            basic.pause(1500)
-
         }
+        //wait 1.5 sec after query 
+        basic.pause(1500)
     }
 
     //% block="DHT11 Read %dht11data| at pin %dht11pin|"
@@ -112,11 +119,17 @@ namespace Environment {
         // querydata
         dht11_queryData(dht11pin)
         //return temperature /humidity
-        if (dht11data == DHT11dataType.temperature && _readSuccessful)
+        // if (dht11data == DHT11dataType.temperature && _readSuccessful)
+        //     return Math.round(_temperature)
+        // else if (dht11data == DHT11dataType.humidity && _readSuccessful)
+        //     return Math.round(_humidity)
+        // else return 0
+
+        if (dht11data == DHT11dataType.temperature) {
             return Math.round(_temperature)
-        else if (dht11data == DHT11dataType.humidity && _readSuccessful)
+        }
+        else
             return Math.round(_humidity)
-        else return 0
     }
 
     //------DHT11-------------------------------------------------
@@ -134,18 +147,14 @@ namespace Environment {
     */
     //% blockId="readBH1750" block="value of light intensity(Lx) from BH1750"
     export function getIntensity(): number {
-       let raw_value= Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
+        let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
 
 
 
-		return raw_value;
+        return raw_value;
     }
 
     //------------------BH1750----------------------------------------------
-
-
-
-
 
 
     /**
@@ -167,38 +176,6 @@ namespace Environment {
         return Math.round(soilmoisture)
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //% blockId="smarthon_waterpump"
     //% block="Set Water pump to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
@@ -209,41 +186,28 @@ namespace Environment {
         pins.analogWritePin(pin, intensity);
     }
 
+    //% blockId="smarthon_waterpump_period"
+    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=70
+    //% advanced=true
+    export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time:number): void {
+
+        pins.analogWritePin(pin, intensity);
+        basic.pause(time*1000);
+        pins.analogWritePin(pin, 0);
+
+    }
+
     //% blockId="smarthon_humdifier"
     //% block="Set Humdifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
-    //% weight=72	
+    //% weight=72
     //% advanced=true
     export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //% blockId="smarthon_plantservo"
     //% block="Set Servo to degree %degree at %pin"
@@ -254,10 +218,4 @@ namespace Environment {
 
         pins.servoWritePin(pin, intensity)
     }
-
-
-
-
-
-
 }

@@ -200,7 +200,7 @@ namespace Environment {
     }
 
     //% blockId="smarthon_humdifier"
-    //% block="Set Humdifier to intensity %intensity at %pin"
+    //% block="Set Humidifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=72
     //% advanced=true

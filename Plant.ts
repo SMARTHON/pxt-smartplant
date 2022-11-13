@@ -180,7 +180,7 @@ namespace Environment {
     //% block="Set Water pump to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=71
-    //% advanced=true
+    //% subcategory="Output"
     export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
@@ -190,7 +190,7 @@ namespace Environment {
     //% block="Set Water pump to intensity %intensity at %pin for %time sec"
     //% intensity.min=0 intensity.max=1023
     //% weight=70
-    //% advanced=true
+    //% subcategory="Output"
     export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time:number): void {
 
         pins.analogWritePin(pin, intensity);
@@ -203,7 +203,7 @@ namespace Environment {
     //% block="Set Humidifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=72
-    //% advanced=true
+    //% subcategory="Output"
     export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
@@ -213,9 +213,40 @@ namespace Environment {
     //% block="Set Servo to degree %degree at %pin"
     //% intensity.min=0 intensity.max=180
     //% weight=89	
-    //% advanced=true
+    //% subcategory="Output"
     export function TurnServo(intensity: number, pin: AnalogPin): void {
 
         pins.servoWritePin(pin, intensity)
     }
+    /**
+         * get Water Level value (0~100)
+         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
+         */
+    //% blockId="ReadWaterLevel" block="value of water level(0~100) at pin %waterlevelpin"
+    
+    //% subcategory="Extension"
+    export function ReadWaterLevel(waterlevelpin: AnalogPin): number {
+        let voltage = 0;
+        let waterlevel = 0;
+        voltage = pins.map(
+            pins.analogReadPin(waterlevelpin),
+            0,
+            1023,
+            0,
+            100
+        );
+        waterlevel = voltage;
+        return Math.round(waterlevel)
+    }
+    //% blockId="smarthon_motorfan"
+    //% block="Set Motor Fan to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=72
+    //% subcategory="Extension"
+    export function TurnMotorFan(intensity: number, pin: AnalogPin): void {
+        pins.analogWritePin(pin, intensity);
+    }
+
 }
+
+

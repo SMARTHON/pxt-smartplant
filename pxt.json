@@ -1,6 +1,6 @@
 {
     "name": "pxt-Smartplant",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "This is the extension for Smartplant in PXT",
     "license": "MIT",
     "dependencies": {

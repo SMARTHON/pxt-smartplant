@@ -225,6 +225,7 @@ namespace Environment {
     //% blockId="ReadWaterLevel" block="value of water level(0~100) at pin %waterlevelpin"
 
     //% subcategory="Extension"
+    //% blockHidden=true
     export function ReadWaterLevel(waterlevelpin: AnalogPin): number {
         let voltage = 0;
         let waterlevel = 0;
@@ -243,6 +244,7 @@ namespace Environment {
     //% intensity.min=0 intensity.max=1023
     //% weight=72
     //% subcategory="Extension"
+    //% blockHidden=true
     export function TurnMotorFan(intensity: number, pin: AnalogPin): void {
         pins.analogWritePin(pin, intensity);
     }
@@ -555,7 +557,7 @@ namespace Environment {
        * @param length the maximum space used on the LCD, eg: 16
        * @param option configures alignment, eg: TextOption.Left
        */
-      //% subcategory=Display
+      //% subcategory=LCD
       //% blockId="lcd_show_string_on_1602"
       //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
       //% text.shadowOptions.toString=true
@@ -585,7 +587,7 @@ namespace Environment {
     /**
        * Clears the LCD1602 completely.
        */
-      //% subcategory=Display
+      //% subcategory=LCD
       //% blockId="lcd_clear_1602" block="LCD clear display"
       //% weight=75
       export function clearLcd1602(): void {
@@ -597,7 +599,7 @@ namespace Environment {
        * Turns a LCD position into a number.
        * @param pos the LCD position, eg: LcdPosition1602.Pos1
        */
-      //% subcategory=Display
+      //% subcategory=LCD
       //% blockId=lcd_position_1602
       //% block="%pos"
       //% pos.fieldEditor="gridpicker"
@@ -613,10 +615,9 @@ namespace Environment {
        * Enables or disables the backlight of the LCD.
        * @param backlight new state of backlight, eg: LcdBacklight.On
        */
-      //% subcategory="LCD1602"
       //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
       //% weight=79
-        //% subcategory=Display
+      //% subcategory=LCD
       export function setLcdBacklight(backlight: LcdBacklight): void {
         if (!lcdState && !connect()) {
           return;
@@ -631,7 +632,7 @@ namespace Environment {
        * Connects to the LCD at a given I2C address.
        * The addresses 39 (PCF8574) or 63 (PCF8574A) seem to be widely used.
          */
-      //% subcategory=Display
+      //% subcategory=LCD
       //% blockId="lcd_set_address" block="Initialize LCD at I2C"
       //% weight=100
       export function connectLcd(): void {
@@ -709,7 +710,7 @@ namespace Environment {
       /**
        * Returns true if a LCD is connected. False otherwise.
        */
-      //% subcategory=Display
+      //% subcategory=LCD
       //% blockId="lcd_is_connected" block="LCD is connected"
       //% weight=69
       //% blockHidden=true

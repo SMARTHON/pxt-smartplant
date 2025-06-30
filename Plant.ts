@@ -56,7 +56,7 @@ namespace Environment {
 
         //request data
         pins.digitalWritePin(dataPin, 0) //begin protocol
-        basic.pause(18)
+        control.waitMicros(18000)
         pins.setPull(dataPin, PinPullMode.PullUp) //pull up data pin if needed
         pins.digitalReadPin(dataPin)
         control.waitMicros(40)
@@ -249,10 +249,7 @@ namespace Environment {
         pins.analogWritePin(pin, intensity);
     }
 
-    //LCD1602
-    //-----------------------------------------------------
-
-
+    //-----LCD1602------------------------------------------------
     export enum LcdPosition1602 {
         //% block="1"
         Pos1 = 1,
@@ -717,6 +714,6 @@ namespace Environment {
     export function isLcdConnected(): boolean {
         return !!lcdState || connect();
     }
-
+    //--------LCD1602-----------------------------------------------------
 }
 

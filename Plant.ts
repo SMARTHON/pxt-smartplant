@@ -121,7 +121,7 @@ namespace Environment {
     */
     //% blockId="readBH1750" 
     //% block="value of light intensity(Lx) from BH1750" 
-	//% weight=80
+    //% weight=80
     export function getIntensity(): number {
         let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
 
@@ -150,7 +150,7 @@ namespace Environment {
         pins.analogWritePin(pin, 0);
 
     }
-    
+
     //% block="DHT11 Read %dht11data| at pin %dht11pin|"
     //% weight=79
 
@@ -178,7 +178,7 @@ namespace Environment {
      */
     //% blockId="readsoilmoisture" 
     //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
-	//% weight=78
+    //% weight=78
     export function ReadSoilHumidity(soilmoisturepin: AnalogPin): number {
         let voltage = 0;
         let soilmoisture = 0;
@@ -353,7 +353,7 @@ namespace Environment {
     }
     //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
     //---USB Grow Light--------------------------------------------------
-    export enum grow_light_num{
+    export enum grow_light_num {
         //% block="Off"
         off = 0,
         //% block="On"
@@ -364,10 +364,10 @@ namespace Environment {
     //% subcategory="Add On"
     //% group="Green Housing"
     //% weight=36
-    export function Grow_Light(onoff: grow_light_num,pin: DigitalPin): void{
-        if(onoff){
+    export function Grow_Light(onoff: grow_light_num, pin: DigitalPin): void {
+        if (onoff) {
             pins.digitalWritePin(pin, 1);
-        }else{
+        } else {
             pins.digitalWritePin(pin, 0);
         }
     }
@@ -388,16 +388,19 @@ namespace Environment {
          * get Water Level value (0~100)
          * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
          */
-    //% blockId="ReadWaterLevel" block="value of water level(0~100) at pin %waterlevelpin"
+    //% blockId="ReadWaterLevel" 
+    //% block="value of water level(0~100) at pin %waterlevelpin"
     //% blockHidden=false
     //% subcategory="Add On"
-	//% group="Water"
-	//% weight=51
+    //% group="Water"
+    //% weight=51
     export function ReadWaterLevel(waterlevelpin: AnalogPin): number {
         let voltage = 0;
         let waterlevel = 0;
+        let readvalue = pins.analogReadPin(waterlevelpin)
+        readvalue -= 20
         voltage = pins.map(
-            pins.analogReadPin(waterlevelpin),
+            readvalue,
             0,
             1023,
             0,
@@ -405,6 +408,33 @@ namespace Environment {
         );
         waterlevel = voltage;
         return Math.round(waterlevel)
+    }
+
+    /**
+        * get Water temperature value (0~100)
+        * @param watertemppin describe parameter here, eg: AnalogPin.P1
+        */
+    //% blockId="ReadWaterTemp" 
+    //% block="read water temperature at pin %watertemppin"
+    //% blockHidden=false
+    //% subcategory="Add On"
+    //% group="Water"
+    //% weight=52
+    export function ReadWaterTemp(watertemppin: AnalogPin): number {
+        // let voltage = 0;
+        let watertemp = 0;
+        let readvalue = pins.analogReadPin(watertemppin);
+        readvalue -= 350;
+        readvalue /= 16;
+        // voltage = pins.map(
+        //     readvalue,
+        //     0,
+        //     1023,
+        //     218,
+        //     393
+        // );
+        watertemp = readvalue;
+        return Math.round(watertemp)
     }
     //----Water-----------------------
 

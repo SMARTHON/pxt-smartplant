@@ -424,8 +424,8 @@ namespace Environment {
         // let voltage = 0;
         let watertemp = 0;
         let readvalue = pins.analogReadPin(watertemppin);
-        readvalue -= 350;
-        readvalue /= 16;
+        readvalue -= 399;
+        readvalue /= 15;
         // voltage = pins.map(
         //     readvalue,
         //     0,

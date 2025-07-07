@@ -101,7 +101,7 @@ namespace Environment {
             }
         }
         //wait 1.5 sec after query
-        basic.pause(1500)
+        basic.pause(2000)
     }
 
     let BH1750_I2C_ADDR = 35;

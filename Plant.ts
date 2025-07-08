@@ -30,9 +30,9 @@ namespace Environment {
     let _last_successful_query_humidity: number = 0
 
     /**
-     * 
+     * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
      */
-    //% block="Get DHT11 at pin %dataPin|"
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin|"
     //% blockId="get_dht11_value"
     //% weight=75
     export function dht11_queryData(dataPin: DigitalPin) {
@@ -48,6 +48,8 @@ namespace Environment {
         _humidity = -999.0
         _temperature = -999.0
         _readSuccessful = false
+        pins.digitalWritePin(dataPin, 1)
+        control.waitMicros(30)
     
 
         //request data
@@ -104,6 +106,17 @@ namespace Environment {
         basic.pause(2000)
     }
 
+    //% block="DHT11 Read %dht11data"
+    //% weight=79
+    export function readData(dht11data: DHT11dataType): number {
+        // querydata
+        if (dht11data == DHT11dataType.temperature) {
+            return Math.round(_temperature)
+        }
+        else
+            return Math.round(_humidity)
+    }
+
     //-------DHT11---------------------------------------------------
 
     let BH1750_I2C_ADDR = 35;
@@ -142,17 +155,6 @@ namespace Environment {
         basic.pause(time * 1000);
         pins.analogWritePin(pin, 0);
 
-    }
-
-    //% block="DHT11 Read %dht11data"
-    //% weight=79
-    export function readData(dht11data: DHT11dataType): number {
-        // querydata
-        if (dht11data == DHT11dataType.temperature) {
-            return Math.round(_temperature)
-        }
-        else
-            return Math.round(_humidity)
     }
 
 

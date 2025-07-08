@@ -413,7 +413,7 @@ namespace Environment {
             100
         );
         waterlevel = voltage;
-        return Math.round(waterlevel)
+        return Math.round(waterlevel*100)/100
     }
 
     /**
@@ -429,7 +429,13 @@ namespace Environment {
     export function ReadWaterTemp(watertemppin: AnalogPin): number {
         // let voltage = 0;
         let watertemp = 0.0;
-        let readvalue = pins.analogReadPin(watertemppin);
+        let sum = 0;
+        let readvalue = 0;
+        for(let i=0;i<30;i++){
+            sum += pins.analogReadPin(watertemppin);
+            basic.pause(10);
+        }
+        readvalue = sum/30;
         readvalue -= 399;
         readvalue /= 15;
         // voltage = pins.map(
@@ -439,8 +445,7 @@ namespace Environment {
         //     218,
         //     393
         // );
-        watertemp = readvalue;
-        return Math.round(watertemp)
+        return Math.round(readvalue*100)/100
     }
     //----Water-----------------------
 

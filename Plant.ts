@@ -16,11 +16,11 @@ namespace Environment {
     //-------DHT11---------------------------------------------------
 
 
-    export enum DHT11dataType {
-        //% block="temperature"
-        temperature,
-        //% block="humidity"
-        humidity
+    export enum Temp_degree {
+        //% block="°C"
+        degree_Celsius,
+        //% block="°F"
+        degree_Fahrenheit
     }
     let _temperature: number = -999.0
     let _humidity: number = -999.0
@@ -34,8 +34,8 @@ namespace Environment {
      */
     //% block="Read Temperature & Humidity Sensor at pin %dataPin|"
     //% blockId="get_dht11_value"
-    //% weight=75
-    export function dht11_queryData(dataPin: DigitalPin) {
+    //% weight=51
+    export function dht11_queryData(dataPin: DigitalPin):void {
         //initialize
         let startTime: number = 0
         let endTime: number = 0
@@ -50,7 +50,6 @@ namespace Environment {
         _readSuccessful = false
         pins.digitalWritePin(dataPin, 1)
         control.waitMicros(30)
-    
 
         //request data
         pins.digitalWritePin(dataPin, 0) //begin protocol
@@ -106,15 +105,33 @@ namespace Environment {
         basic.pause(2000)
     }
 
-    //% block="DHT11 Read %dht11data"
-    //% weight=79
-    export function readData(dht11data: DHT11dataType): number {
+    /**
+     * Get the Temperature value (degree in Celsius or Fahrenheit) after queried the Temperature and Humidity sensor
+     */
+
+    //% block="Get Temperature |%temp_degree"
+    //% weight=74
+    export function readTemperatureData(temp_degree: Temp_degree): number {
         // querydata
-        if (dht11data == DHT11dataType.temperature) {
-            return Math.round(_temperature)
+        if (temp_degree == Temp_degree.degree_Celsius) {
+            return Math.round(_last_successful_query_temperature)
         }
-        else
-            return Math.round(_humidity)
+        else {
+            return Math.round((_last_successful_query_temperature * 1.8) + 32)
+        }
+    }
+
+    /**
+     * Get the humidity value (in percentage) after queried the Temperature and Humidity sensor
+     */
+    //% block="Get Humidity"
+    //% weight=73
+    export function readHumidityData(): number {
+        // querydata
+
+        return Math.round(_last_successful_query_humidity)
+
+
     }
 
     //-------DHT11---------------------------------------------------
@@ -346,10 +363,10 @@ namespace Environment {
         on = 1
     }
     //% blockId="smarthon_growLight"
-    //% block="Set Grow Light %onoff at %pin"
+    //% block="Set LED Grow Light %onoff at %pin"
     //% subcategory="Add On"
     //% group="Green Housing"
-    //% weight=36
+    //% weight=89
     export function Grow_Light(onoff: grow_light_num, pin: DigitalPin): void {
         if (onoff) {
             pins.digitalWritePin(pin, 1);

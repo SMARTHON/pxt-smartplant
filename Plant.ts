@@ -104,6 +104,8 @@ namespace Environment {
         basic.pause(2000)
     }
 
+    //-------DHT11---------------------------------------------------
+
     let BH1750_I2C_ADDR = 35;
     pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
 

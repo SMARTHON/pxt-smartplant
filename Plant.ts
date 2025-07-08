@@ -13,6 +13,76 @@ namespace Environment {
     //let numWindTurns = 0
     //let windMPH = 0
 
+    let BH1750_I2C_ADDR = 35;
+    pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
+
+    /**
+    * get light intensity value from bh1750
+    */
+    //% blockId="readBH1750" 
+    //% block="value of light intensity(Lx) from BH1750" 
+    //% weight=80
+    export function getIntensity(): number {
+        let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
+
+
+
+        return raw_value;
+    }
+
+    //% blockId="smarthon_waterpump"
+    //% block="Set Water pump to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=50
+    export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
+
+        pins.analogWritePin(pin, intensity);
+    }
+
+    //% blockId="smarthon_waterpump_period"
+    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=49
+    export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time: number): void {
+
+        pins.analogWritePin(pin, intensity);
+        basic.pause(time * 1000);
+        pins.analogWritePin(pin, 0);
+
+    }
+
+
+    /**
+     * get soil moisture value (0~100)
+     * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
+     */
+    //% blockId="readsoilmoisture" 
+    //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
+    //% weight=78
+    export function ReadSoilHumidity(soilmoisturepin: AnalogPin): number {
+        let voltage = 0;
+        let soilmoisture = 0;
+        voltage = pins.map(
+            pins.analogReadPin(soilmoisturepin),
+            0,
+            1023,
+            0,
+            100
+        );
+        soilmoisture = voltage;
+        return Math.round(soilmoisture)
+    }
+
+    //% blockId="smarthon_humdifier"
+    //% block="Set Humidifier to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=48
+
+    export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
+
+        pins.analogWritePin(pin, intensity);
+    }
+
     //-------DHT11---------------------------------------------------
 
 
@@ -34,8 +104,9 @@ namespace Environment {
      */
     //% block="Read Temperature & Humidity Sensor at pin %dataPin|"
     //% blockId="get_dht11_value"
-    //% weight=51
-    export function dht11_queryData(dataPin: DigitalPin):void {
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=52
+    export function dht11_queryData(dataPin: DigitalPin): void {
         //initialize
         let startTime: number = 0
         let endTime: number = 0
@@ -110,7 +181,8 @@ namespace Environment {
      */
 
     //% block="Get Temperature |%temp_degree"
-    //% weight=74
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=51
     export function readTemperatureData(temp_degree: Temp_degree): number {
         // querydata
         if (temp_degree == Temp_degree.degree_Celsius) {
@@ -125,7 +197,8 @@ namespace Environment {
      * Get the humidity value (in percentage) after queried the Temperature and Humidity sensor
      */
     //% block="Get Humidity"
-    //% weight=73
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=50
     export function readHumidityData(): number {
         // querydata
 
@@ -135,76 +208,6 @@ namespace Environment {
     }
 
     //-------DHT11---------------------------------------------------
-
-    let BH1750_I2C_ADDR = 35;
-    pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
-
-    /**
-    * get light intensity value from bh1750
-    */
-    //% blockId="readBH1750" 
-    //% block="value of light intensity(Lx) from BH1750" 
-    //% weight=80
-    export function getIntensity(): number {
-        let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
-
-
-
-        return raw_value;
-    }
-
-    //% blockId="smarthon_waterpump"
-    //% block="Set Water pump to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=50
-    export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
-
-    //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=49
-    export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time: number): void {
-
-        pins.analogWritePin(pin, intensity);
-        basic.pause(time * 1000);
-        pins.analogWritePin(pin, 0);
-
-    }
-
-
-    /**
-     * get soil moisture value (0~100)
-     * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
-     */
-    //% blockId="readsoilmoisture" 
-    //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
-    //% weight=78
-    export function ReadSoilHumidity(soilmoisturepin: AnalogPin): number {
-        let voltage = 0;
-        let soilmoisture = 0;
-        voltage = pins.map(
-            pins.analogReadPin(soilmoisturepin),
-            0,
-            1023,
-            0,
-            100
-        );
-        soilmoisture = voltage;
-        return Math.round(soilmoisture)
-    }
-
-    //% blockId="smarthon_humdifier"
-    //% block="Set Humidifier to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=48
-
-    export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
 
     //---Green House-----------------------------------
     //% blockId="smarthon_motorfan"

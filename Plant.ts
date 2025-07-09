@@ -119,8 +119,6 @@ namespace Environment {
         _humidity = -999.0
         _temperature = -999.0
         _readSuccessful = false
-        pins.digitalWritePin(dataPin, 1)
-        control.waitMicros(30)
 
         //request data
         pins.digitalWritePin(dataPin, 0) //begin protocol
@@ -174,6 +172,7 @@ namespace Environment {
         }
         //wait 1.5 sec after query
         basic.pause(2000)
+        pins.digitalWritePin(dataPin, 1)
     }
 
     /**
@@ -186,7 +185,7 @@ namespace Environment {
     export function readTemperatureData(temp_degree: Temp_degree): number {
         // querydata
         if (temp_degree == Temp_degree.degree_Celsius) {
-            return Math.round(_last_successful_query_temperature)
+            return Math.round(_last_successful_query_temperature * 100) / 100
         }
         else {
             return Math.round((_last_successful_query_temperature * 1.8) + 32)
@@ -413,7 +412,7 @@ namespace Environment {
             100
         );
         waterlevel = voltage;
-        return Math.round(waterlevel*100)/100
+        return Math.round(waterlevel * 100) / 100
     }
 
     /**
@@ -431,11 +430,11 @@ namespace Environment {
         let watertemp = 0.0;
         let sum = 0;
         let readvalue = 0;
-        for(let i=0;i<30;i++){
+        for (let i = 0; i < 30; i++) {
             sum += pins.analogReadPin(watertemppin);
             basic.pause(10);
         }
-        readvalue = sum/30;
+        readvalue = sum / 30;
         readvalue -= 399;
         readvalue /= 15;
         // voltage = pins.map(
@@ -445,7 +444,7 @@ namespace Environment {
         //     218,
         //     393
         // );
-        return Math.round(readvalue*100)/100
+        return Math.round(readvalue * 100) / 100
     }
     //----Water-----------------------
 

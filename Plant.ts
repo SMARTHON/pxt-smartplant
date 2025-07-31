@@ -407,7 +407,7 @@ namespace Environment {
         voltage = pins.map(
             readvalue,
             0,
-            1023,
+            950,
             0,
             100
         );

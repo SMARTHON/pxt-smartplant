@@ -793,7 +793,7 @@ namespace Environment {
 
     /**
      * Turns a LCD position into a number.
-     * @param pos the LCD position, eg: LcdPosition1602.Pos1
+     * @param pos the LCD position, eg: Environment.LcdPosition1602.Pos1
      */
     //% subcategory=LCD
     //% blockId=lcd_position_1602

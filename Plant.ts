@@ -98,9 +98,10 @@ namespace Environment {
     let _sensorresponding: boolean = false
     let _last_successful_query_temperature: number = 0
     let _last_successful_query_humidity: number = 0
+    let _errorCode: number = 0
 
     // helper function : when over time Low vlotage return false
-    function waitForLow(pin: DigitalPin, timeoutUs: number): boolean {
+    function waitUntilHigh(pin: DigitalPin, timeoutUs: number): boolean {
         let start = input.runningTimeMicros()
         while (pins.digitalReadPin(pin) == 0) {
             if (input.runningTimeMicros() - start > timeoutUs) return false
@@ -109,7 +110,7 @@ namespace Environment {
     }
 
     // helper function : when over time High vlotage return false
-    function waitForHigh(pin: DigitalPin, timeoutUs: number): boolean {
+    function waitUntilLow(pin: DigitalPin, timeoutUs: number): boolean {
         let start = input.runningTimeMicros()
         while (pins.digitalReadPin(pin) == 1) {
             if (input.runningTimeMicros() - start > timeoutUs) return false
@@ -137,6 +138,7 @@ namespace Environment {
         _humidity = -999.0
         _temperature = -999.0
         _readSuccessful = false
+        _errorCode = 0
 
         //request data
         pins.digitalWritePin(dataPin, 0) //begin protocol
@@ -148,47 +150,73 @@ namespace Environment {
         if (pins.digitalReadPin(dataPin) == 1) {
             //if no respone,exit the loop to avoid Infinity loop
             pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
+            _errorCode = 1
             return;
         }
 
         pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
+        if (!waitUntilHigh(dataPin, 200)) {
+            _errorCode = 2
+            return
+        }
         // sensor respond signal
-        if (!waitForLow(dataPin, 200)) return
-        if (!waitForHigh(dataPin, 200)) return
+        if (!waitUntilLow(dataPin, 200)) {
+            _errorCode = 2
+            return
+        }
+
+        
 
         //read data (5 bytes)
         for (let index = 0; index < 40; index++) {
-            while (pins.digitalReadPin(dataPin) == 1);
-            while (pins.digitalReadPin(dataPin) == 0);
-            control.waitMicros(28)
-            //if sensor still pull up data pin after 28 us it means 1, otherwise 0
-            if (pins.digitalReadPin(dataPin) == 1) dataArray[index] = true
+            if (!waitUntilHigh(dataPin, 200)) {
+                _errorCode = 3
+                return;
+            };  // wait until High (skip remaining high if needed)
+            let startHigh = input.runningTimeMicros()
+            if (!waitUntilLow(dataPin, 200)) {
+                 _errorCode = 3 
+                return;
+            };  // wait until low (skip remaining high if needed)
+            let duration = input.runningTimeMicros() - startHigh
+            if (duration > 40) dataArray[index] = true  // >40us 為1，否則0
         }
-
-        endTime = input.runningTimeMicros()
 
         //convert byte number array to integer
         for (let index = 0; index < 5; index++)
             for (let index2 = 0; index2 < 8; index2++)
                 if (dataArray[8 * index + index2]) resultArray[index] += 2 ** (7 - index2)
-
-        //verify checksum
-        checksumTmp = resultArray[0] + resultArray[1] + resultArray[2] + resultArray[3]
+        
+        //debug to OLED
+        OLED.writeStringNewLine("Debug: RH=" + resultArray[0] + "." + resultArray[1] + " T=" + resultArray[2] + "." + resultArray[3] + " CHK=" + resultArray[4])
+        
+        //verify checksum (簡化計算)
+        checksumTmp = (resultArray[0] + resultArray[1] + resultArray[2] + resultArray[3]) % 256
+        OLED.writeStringNewLine("CHK Tmp=" + checksumTmp)  // debug checksumTmp
         checksum = resultArray[4]
-        if (checksumTmp >= 512) checksumTmp -= 512
-        if (checksumTmp >= 256) checksumTmp -= 256
-        if (checksum == checksumTmp) _readSuccessful = true
+        if (checksum == checksumTmp) {
+            _readSuccessful = true
+        } else {
+            _errorCode = 4
+        }
 
-        //read data if checksum ok
+        //read data if ok
         if (_readSuccessful) {
             _humidity = resultArray[0] + resultArray[1] / 100
             _temperature = resultArray[2] + resultArray[3] / 100
-            _last_successful_query_humidity = _humidity
-            _last_successful_query_temperature = _temperature
+            if (_humidity == 0 && _temperature == 0) {
+                _readSuccessful = false
+                _errorCode = 5
+            } else {
+                _last_successful_query_humidity = _humidity
+                _last_successful_query_temperature = _temperature
+                _errorCode = 0
+            }
         } else {
             _humidity = _last_successful_query_humidity
             _temperature = _last_successful_query_temperature
         }
+
         //wait 1.5 sec after query
         basic.pause(2000)
         pins.digitalWritePin(dataPin, 1)
@@ -223,6 +251,16 @@ namespace Environment {
         return Math.round(_last_successful_query_humidity)
 
 
+    }
+
+    /**
+    * Get the error code after query (for debugging)
+    */
+    //% block="Get Error Code"
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=49
+    export function getErrorCode(): number {
+        return _errorCode
     }
 
     //-------DHT11---------------------------------------------------

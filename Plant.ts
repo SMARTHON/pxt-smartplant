@@ -87,36 +87,18 @@ namespace Environment {
 
 
     export enum Temp_degree {
-        //% block="°C"
         degree_Celsius,
-        //% block="°F"
         degree_Fahrenheit
     }
+
     let _temperature: number = -999.0
     let _humidity: number = -999.0
     let _readSuccessful: boolean = false
-    let _sensorresponding: boolean = false
-    let _last_successful_query_temperature: number = 0
-    let _last_successful_query_humidity: number = 0
     let _errorCode: number = 0
 
-    // helper function : when over time Low vlotage return false
-    function waitUntilHigh(pin: DigitalPin, timeoutUs: number): boolean {
-        let start = input.runningTimeMicros()
-        while (pins.digitalReadPin(pin) == 0) {
-            if (input.runningTimeMicros() - start > timeoutUs) return false
-        }
-        return true
-    }
-
-    // helper function : when over time High vlotage return false
-    function waitUntilLow(pin: DigitalPin, timeoutUs: number): boolean {
-        let start = input.runningTimeMicros()
-        while (pins.digitalReadPin(pin) == 1) {
-            if (input.runningTimeMicros() - start > timeoutUs) return false
-        }
-        return true
-    }
+    // 使用固定長度的數組，避免動態分配
+    let timings = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    let rawData = [0, 0, 0, 0, 0]
 
     /**
      * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
@@ -127,99 +109,72 @@ namespace Environment {
     //% weight=52
     export function dht11_queryData(dataPin: DigitalPin): void {
         //initialize
-        let startTime: number = 0
-        let endTime: number = 0
-        let checksum: number = 0
-        let checksumTmp: number = 0
-        let dataArray: boolean[] = []
-        let resultArray: number[] = []
-        for (let index = 0; index < 40; index++) dataArray.push(false)
-        for (let index = 0; index < 5; index++) resultArray.push(0)
-        _humidity = -999.0
-        _temperature = -999.0
         _readSuccessful = false
         _errorCode = 0
 
-        //request data
-        pins.digitalWritePin(dataPin, 0) //begin protocol
-        control.waitMicros(18000)
-        pins.setPull(dataPin, PinPullMode.PullUp) //pull up data pin if needed
+        // 1. 發送啟動信號
+        pins.digitalWritePin(dataPin, 0)
+        basic.pause(18)
+
+        pins.setPull(dataPin, PinPullMode.PullUp)
         pins.digitalReadPin(dataPin)
         control.waitMicros(40)
 
+        // 2. 等待傳感器響應
         if (pins.digitalReadPin(dataPin) == 1) {
-            //if no respone,exit the loop to avoid Infinity loop
-            pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
             _errorCode = 1
-            return;
-        }
-
-        pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
-        if (!waitUntilHigh(dataPin, 200)) {
-            _errorCode = 2
-            return
-        }
-        // sensor respond signal
-        if (!waitUntilLow(dataPin, 200)) {
-            _errorCode = 2
             return
         }
 
-        
+        // 等待響應信號結束 (低-高-低)
+        while (pins.digitalReadPin(dataPin) == 0);
+        while (pins.digitalReadPin(dataPin) == 1);
 
-        //read data (5 bytes)
-        for (let index = 0; index < 40; index++) {
-            if (!waitUntilHigh(dataPin, 200)) {
-                _errorCode = 3
-                return;
-            };  // wait until High (skip remaining high if needed)
-            let startHigh = input.runningTimeMicros()
-            if (!waitUntilLow(dataPin, 200)) {
-                 _errorCode = 3 
-                return;
-            };  // wait until low (skip remaining high if needed)
-            let duration = input.runningTimeMicros() - startHigh
-            if (duration > 40) dataArray[index] = true  // >40us 為1，否則0
+        // 3. 核心數據讀取 (40 bits)
+        // 關鍵：在循環中不做任何函數調用
+        for (let i = 0; i < 40; i++) {
+            while (pins.digitalReadPin(dataPin) == 0); // 等待變高
+
+            let count = 0
+            while (pins.digitalReadPin(dataPin) == 1) {
+                count++
+                if (count > 2000) break // 安全退出
+            }
+            timings[i] = count
         }
 
-        //convert byte number array to integer
-        for (let index = 0; index < 5; index++)
-            for (let index2 = 0; index2 < 8; index2++)
-                if (dataArray[8 * index + index2]) resultArray[index] += 2 ** (7 - index2)
-        
-        //debug to OLED
-        OLED.writeStringNewLine("Debug: RH=" + resultArray[0] + "." + resultArray[1] + " T=" + resultArray[2] + "." + resultArray[3] + " CHK=" + resultArray[4])
-        
-        //verify checksum (簡化計算)
-        checksumTmp = (resultArray[0] + resultArray[1] + resultArray[2] + resultArray[3]) % 256
-        OLED.writeStringNewLine("CHK Tmp=" + checksumTmp)  // debug checksumTmp
-        checksum = resultArray[4]
-        if (checksum == checksumTmp) {
-            _readSuccessful = true
-        } else {
-            _errorCode = 4
+        // 4. 解析數據：動態閾值法 (適配 V1 的慢與 V2 的快)
+        let max = 0
+        let min = 1000
+        for (let i = 0; i < 40; i++) {
+            if (timings[i] > max) max = timings[i]
+            if (timings[i] < min) min = timings[i]
+        }
+        let threshold = (max + min) >> 1 // 取中間值作為 0 和 1 的分界
+
+        // reset rawData
+        for (let k = 0; k < 5; k++) rawData[k] = 0
+
+        for (let j = 0; j < 40; j++) {
+            if (timings[j] > threshold) {
+                let index = Math.floor(j / 8)
+                let shift = 7 - (j % 8)
+                rawData[index] |= (1 << shift)
+            }
         }
 
-        //read data if ok
-        if (_readSuccessful) {
-            _humidity = resultArray[0] + resultArray[1] / 100
-            _temperature = resultArray[2] + resultArray[3] / 100
-            if (_humidity == 0 && _temperature == 0) {
-                _readSuccessful = false
-                _errorCode = 5
+        // 5. 校驗與賦值
+        if ((rawData[0] + rawData[1] + rawData[2] + rawData[3]) % 256 == rawData[4]) {
+            if (rawData[0] != 0 || rawData[2] != 0) {
+                _humidity = rawData[0]
+                _temperature = rawData[2]
+                _readSuccessful = true
             } else {
-                _last_successful_query_humidity = _humidity
-                _last_successful_query_temperature = _temperature
-                _errorCode = 0
+                _errorCode = 5 // 數據異常(全0)
             }
         } else {
-            _humidity = _last_successful_query_humidity
-            _temperature = _last_successful_query_temperature
+            _errorCode = 4 // 校驗失敗
         }
-
-        //wait 1.5 sec after query
-        basic.pause(2000)
-        pins.digitalWritePin(dataPin, 1)
     }
 
     /**

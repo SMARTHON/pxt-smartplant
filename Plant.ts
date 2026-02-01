@@ -187,10 +187,10 @@ namespace Environment {
     export function readTemperatureData(temp_degree: Temp_degree): number {
         // querydata
         if (temp_degree == Temp_degree.degree_Celsius) {
-            return Math.round(_last_successful_query_temperature * 100) / 100
+            return Math.round(_temperature * 100) / 100
         }
         else {
-            return Math.round((_last_successful_query_temperature * 1.8) + 32)
+            return Math.round((_temperature * 1.8) + 32)
         }
     }
 
@@ -203,7 +203,7 @@ namespace Environment {
     export function readHumidityData(): number {
         // querydata
 
-        return Math.round(_last_successful_query_humidity)
+        return Math.round(_humidity)
 
 
     }

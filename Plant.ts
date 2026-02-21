@@ -139,7 +139,7 @@ namespace Environment {
             while (pins.digitalReadPin(dataPin) == 1) {
                 count++
                 if (count > 2000) {
-                    _errorCode = 3
+                    _errorCode = 2
                     break // Timeout
                 }
             }
@@ -173,10 +173,10 @@ namespace Environment {
                 _readSuccessful = true
                 
             } else {
-                _errorCode = 5 // 數據異常
+                _errorCode = 4 // 數據異常
             }
         } else {
-            _errorCode = 4 // 校驗失敗
+            _errorCode = 3 // 校驗失敗
         }
     }
 

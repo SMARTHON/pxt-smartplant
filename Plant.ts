@@ -87,7 +87,9 @@ namespace Environment {
 
 
     export enum Temp_degree {
+        //% block="°C"
         degree_Celsius,
+        //% block="°F"
         degree_Fahrenheit
     }
 
@@ -126,24 +128,24 @@ namespace Environment {
             return
         }
 
-        // 等待響應信號結束 (低-高-低)
+        // wait signal
         while (pins.digitalReadPin(dataPin) == 0);
         while (pins.digitalReadPin(dataPin) == 1);
 
-        // 3. 核心數據讀取 (40 bits)
-        // 關鍵：在循環中不做任何函數調用
         for (let i = 0; i < 40; i++) {
-            while (pins.digitalReadPin(dataPin) == 0); // 等待變高
+            while (pins.digitalReadPin(dataPin) == 0); // waiting
 
             let count = 0
             while (pins.digitalReadPin(dataPin) == 1) {
                 count++
-                if (count > 2000) break // 安全退出
+                if (count > 2000) {
+                    _errorCode = 3
+                    break // Timeout
+                }
             }
             timings[i] = count
         }
 
-        // 4. 解析數據：動態閾值法 (適配 V1 的慢與 V2 的快)
         let max = 0
         let min = 1000
         for (let i = 0; i < 40; i++) {
@@ -165,12 +167,13 @@ namespace Environment {
 
         // 5. 校驗與賦值
         if ((rawData[0] + rawData[1] + rawData[2] + rawData[3]) % 256 == rawData[4]) {
-            if (rawData[0] != 0 || rawData[2] != 0) {
+            if (rawData[0] != -999 || rawData[2] != -999) {
                 _humidity = rawData[0]
                 _temperature = rawData[2]
                 _readSuccessful = true
+                
             } else {
-                _errorCode = 5 // 數據異常(全0)
+                _errorCode = 5 // 數據異常
             }
         } else {
             _errorCode = 4 // 校驗失敗

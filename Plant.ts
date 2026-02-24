@@ -1,8 +1,8 @@
 /**
  * Custom blocks
  */
-//% weight=98 color=#7abb4b icon="\uf06c" block="Smartplant"
-namespace Environment {
+//% weight=98 color=#7abb4b icon="\uf06c" block="SmartGarden"
+namespace environment {
 
     // keep track of services
     //let rainMonitorStarted = false;
@@ -34,7 +34,7 @@ namespace Environment {
     //% block="Set Water pump to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=50
-    export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
+    export function turnWaterpump(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
     }
@@ -43,7 +43,7 @@ namespace Environment {
     //% block="Set Water pump to intensity %intensity at %pin for %time sec"
     //% intensity.min=0 intensity.max=1023
     //% weight=49
-    export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time: number): void {
+    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number): void {
 
         pins.analogWritePin(pin, intensity);
         basic.pause(time * 1000);
@@ -59,7 +59,7 @@ namespace Environment {
     //% blockId="readsoilmoisture" 
     //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
     //% weight=78
-    export function ReadSoilHumidity(soilmoisturepin: AnalogPin): number {
+    export function readSoilHumidity(soilmoisturepin: AnalogPin): number {
         let voltage = 0;
         let soilmoisture = 0;
         voltage = pins.map(
@@ -78,7 +78,7 @@ namespace Environment {
     //% intensity.min=0 intensity.max=1023
     //% weight=48
 
-    export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
+    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
     }
@@ -86,11 +86,11 @@ namespace Environment {
     //-------DHT11---------------------------------------------------
 
 
-    export enum Temp_degree {
+    export enum tempDegree {
         //% block="°C"
-        degree_Celsius,
+        degreeCelsius,
         //% block="°F"
-        degree_Fahrenheit
+        degreeFahrenheit
     }
 
     let _temperature: number = -999.0
@@ -109,7 +109,7 @@ namespace Environment {
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=52
-    export function dht11_queryData(dataPin: DigitalPin): void {
+    export function dht11QueryData(dataPin: DigitalPin): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
@@ -171,7 +171,7 @@ namespace Environment {
                 _humidity = rawData[0]
                 _temperature = rawData[2]
                 _readSuccessful = true
-                
+
             } else {
                 _errorCode = 4 // 數據異常
             }
@@ -187,9 +187,9 @@ namespace Environment {
     //% block="Get Temperature |%temp_degree"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=51
-    export function readTemperatureData(temp_degree: Temp_degree): number {
+    export function readTemperatureData(tempdegree: tempDegree): number {
         // querydata
-        if (temp_degree == Temp_degree.degree_Celsius) {
+        if (tempdegree == tempDegree.degreeCelsius) {
             return Math.round(_temperature * 100) / 100
         }
         else {
@@ -223,248 +223,9 @@ namespace Environment {
 
     //-------DHT11---------------------------------------------------
 
-    //---Green House-----------------------------------
-    //% blockId="smarthon_motorfan"
-    //% block="Set Motor Fan to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=90
-    //% blockHidden=false
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    export function TurnMotorFan(intensity: number, pin: AnalogPin): void {
-        pins.analogWritePin(pin, intensity);
-    }
-
-    //--CO2 and TVOC Sensor (CCS811)----------------------------------------------------
-    let TVOC_OK = true
-    /* CO2*/
-    function indenvGasStatus(): number {
-        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
-        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
-        //basic.pause(200)
-        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        let GasStatus = pins.i2cReadNumber(90, NumberFormat.UInt8LE, false)
-        //basic.pause(200)
-        return GasStatus
-    }
-
-    function indenvGasReady(): boolean {
-        if (TVOC_OK != true) {
-            return false
-        }
-        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
-        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
-        //basic.pause(200)
-        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        if ((pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 16) != 8) {
-            return false
-        }
-        return true
-    }
-    /**
-    * CO2 and TVOC Sensor (CCS811) Start
-    */
-    //% blockId="indenvStart" block="CCS811 Start"
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    //% weight=40
-    export function indenvStart(): void {
-        TVOC_OK = true
-        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
-        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
-        //basic.pause(200)
-        //basic.pause(200)
-        /* CJMCU-8118 CCS811 addr 0x5A reg 0x20 Read Device ID = 0x81 */
-        pins.i2cWriteNumber(90, 32, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) != 129) {
-            TVOC_OK = false
-        }
-        basic.pause(200)
-        /* CJMCU-8118 AppStart CCS811 addr 0x5A register 0xF4 */
-        pins.i2cWriteNumber(90, 244, NumberFormat.UInt8LE, false)
-        //basic.pause(200)
-        /* CJMCU-8118 CCS811 Driving Mode 1 addr 0x5A register 0x01 0x0110 */
-        pins.i2cWriteNumber(90, 272, NumberFormat.UInt16BE, false)
-        basic.pause(200)
-        /* CJMCU-8118 CCS811 Status addr 0x5A register 0x00 return 1 byte */
-        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 2 != 0) {
-            TVOC_OK = false
-        }
-        basic.pause(200)
-        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        if (Math.idiv(pins.i2cReadNumber(90, NumberFormat.UInt8LE, false), 16) != 9) {
-            TVOC_OK = false
-        }
-        basic.pause(200)
-    }
-    /**
-     * Set TVOC and CO2 baseline (Baseline should be a decimal value)
-     * @param value  , eg: 33915
-     */
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    //% blockId=CCS811_setBaseline block="set CO2 and TVOC baseline|%value value"
-    //% weight=39
-    export function setBaseline(value: number): void {
-        let buffer: Buffer = pins.createBuffer(3);
-        buffer[0] = 0x20;
-        buffer[1] = value >> 8 & 0xff;
-        buffer[2] = value & 0xff;
-        pins.i2cWriteBuffer(90, buffer);
-
-    }
-    /**
-    * Read estimated CO2
-    */
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    //% blockId="indenvgeteCO2" block="Value of CO2"
-    //% weight=38
-    export function indenvgeteCO2(): number {
-
-        let i
-
-        i = 0
-
-        while (indenvGasReady() != true) {
-            basic.pause(200)
-            i = i + 1
-            if (i >= 10)
-                return -1;
-        }
-        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
-        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
-        //basic.pause(200)
-        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        return pins.i2cReadNumber(90, NumberFormat.UInt16BE, false)
-    }
-    /**
-    * Read Total VOC
-    */
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    //% blockId="indenvgetTVOC" block="Value of TVOC"
-    //% weight=37
-    export function indenvgetTVOC(): number {
-
-        let i
-
-        i = 0
-
-        while (indenvGasReady() != true) {
-            basic.pause(200)
-            i = i + 1
-            if (i >= 10)
-                return -1;
-        }
-        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
-        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
-        //basic.pause(200)
-        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
-        //basic.pause(200)
-        return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
-    }
-    //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
-    //---USB Grow Light--------------------------------------------------
-    export enum grow_light_num {
-        //% block="Off"
-        off = 0,
-        //% block="On"
-        on = 1
-    }
-    //% blockId="smarthon_growLight"
-    //% block="Set LED Grow Light %onoff at %pin"
-    //% subcategory="Add On"
-    //% group="Green Housing"
-    //% weight=89
-    export function Grow_Light(onoff: grow_light_num, pin: DigitalPin): void {
-        if (onoff) {
-            pins.digitalWritePin(pin, 1);
-        } else {
-            pins.digitalWritePin(pin, 0);
-        }
-    }
-    //---USB Grow Light--------------------------------------------------
-    //---Green House-----------------------------------
-    //---Water-------------------------------------------
-    //% blockId="smarthon_plantservo"
-    //% block="Set Servo to degree %degree at %pin"
-    //% intensity.min=0 intensity.max=180
-    //% weight=50
-    //% subcategory="Add On"
-    //% group="Water"
-    export function TurnServo(intensity: number, pin: AnalogPin): void {
-
-        pins.servoWritePin(pin, intensity)
-    }
-    /**
-         * get Water Level value (0~100)
-         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
-         */
-    //% blockId="ReadWaterLevel" 
-    //% block="value of water level(0~100) at pin %waterlevelpin"
-    //% blockHidden=false
-    //% subcategory="Add On"
-    //% group="Water"
-    //% weight=51
-    export function ReadWaterLevel(waterlevelpin: AnalogPin): number {
-        let voltage = 0;
-        let waterlevel = 0;
-        let readvalue = pins.analogReadPin(waterlevelpin)
-        readvalue -= 20
-        voltage = pins.map(
-            readvalue,
-            0,
-            950,
-            0,
-            100
-        );
-        waterlevel = voltage;
-        return Math.round(waterlevel * 100) / 100
-    }
-
-    /**
-        * get Water temperature value (0~100)
-        * @param watertemppin describe parameter here, eg: AnalogPin.P1
-        */
-    //% blockId="ReadWaterTemp" 
-    //% block="read water temperature at pin %watertemppin"
-    //% blockHidden=false
-    //% subcategory="Add On"
-    //% group="Water"
-    //% weight=52
-    export function ReadWaterTemp(watertemppin: AnalogPin): number {
-        // let voltage = 0;
-        let watertemp = 0.0;
-        let sum = 0;
-        let readvalue = 0;
-        for (let i = 0; i < 30; i++) {
-            sum += pins.analogReadPin(watertemppin);
-            basic.pause(10);
-        }
-        readvalue = sum / 30;
-        readvalue -= 399;
-        readvalue /= 15;
-        // voltage = pins.map(
-        //     readvalue,
-        //     0,
-        //     1023,
-        //     218,
-        //     393
-        // );
-        return Math.round(readvalue * 100) / 100
-    }
-    //----Water-----------------------
 
     //-----LCD1602------------------------------------------------
-    export enum LcdPosition1602 {
+    export enum lcdPosition1602 {
         //% block="1"
         Pos1 = 1,
         //% block="2"
@@ -533,14 +294,14 @@ namespace Environment {
 
 
 
-    export enum LcdBacklight {
+    export enum lcdBacklight {
         //% block="off"
         Off = 0,
         //% block="on"
         On = 8
     }
 
-    export enum TextAlignment {
+    export enum textAlignment {
         //% block="left-aligned"
         Left,
         //% block="right-aligned"
@@ -549,7 +310,7 @@ namespace Environment {
         Center
     }
 
-    export enum TextOption {
+    export enum textOption {
         //% block="align left"
         AlignLeft,
         //% block="align right"
@@ -559,14 +320,14 @@ namespace Environment {
     }
 
 
-    export enum Lcd {
+    export enum lcd {
         Command = 0,
         Data = 1
     }
 
     interface LcdState {
         i2cAddress: uint8;
-        backlight: LcdBacklight;
+        backlight: lcdBacklight;
         characters: Buffer;
         rows: uint8;
         columns: uint8;
@@ -616,12 +377,12 @@ namespace Environment {
 
     // Send command
     function sendCommand(command: number) {
-        send(Lcd.Command, command);
+        send(lcd.Command, command);
     }
 
     // Send data
     function sendData(data: number) {
-        send(Lcd.Data, data);
+        send(lcd.Data, data);
     }
 
     // Set cursor
@@ -636,7 +397,7 @@ namespace Environment {
         length: number,
         columns: number,
         rows: number,
-        alignment: TextAlignment,
+        alignment: textAlignment,
         pad: string
     ): void {
         if (!lcdState && !connect()) {
@@ -663,7 +424,7 @@ namespace Environment {
                 lcdState.columns * lcdState.rows,
                 lcdState.columns,
                 lcdState.rows,
-                TextAlignment.Left,
+                textAlignment.Left,
                 " "
             );
         }
@@ -684,10 +445,10 @@ namespace Environment {
         // Add padding at the beginning
         let paddingEnd = offset;
 
-        if (alignment === TextAlignment.Right) {
+        if (alignment === textAlignment.Right) {
             paddingEnd = endPosition - text.length;
         }
-        else if (alignment === TextAlignment.Center) {
+        else if (alignment === textAlignment.Center) {
             paddingEnd = offset + Math.idiv(endPosition - offset - text.length, 2);
         }
 
@@ -743,19 +504,17 @@ namespace Environment {
         }
     }
 
-    function toAlignment(option?: TextOption): TextAlignment {
+    function toAlignment(option?: textOption): textAlignment {
         if (
-            option === TextOption.AlignRight
+            option === textOption.AlignRight
         ) {
-            return TextAlignment.Right;
-        } else if (option === TextOption.AlignCenter) {
-            return TextAlignment.Center;
+            return textAlignment.Right;
+        } else if (option === textOption.AlignCenter) {
+            return textAlignment.Center;
         } else {
-            return TextAlignment.Left;
+            return textAlignment.Left;
         }
     }
-
-
 
 
 
@@ -775,12 +534,12 @@ namespace Environment {
     //% length.min=1 length.max=32 length.fieldOptions.precision=1
     //% expandableArgumentMode="toggle"
     //% inlineInputMode="inline"
-    //% weight=90
+    //% weight=149
     export function showStringOnLcd1602(
         text: string,
         startPosition: number,
         length: number,
-        option?: TextOption
+        option?: textOption
     ): void {
         updateCharacterBuffer(
             text,
@@ -800,7 +559,7 @@ namespace Environment {
        */
     //% subcategory=LCD
     //% blockId="lcd_clear_1602" block="LCD clear display"
-    //% weight=75
+    //% weight=130
     export function clearLcd1602(): void {
         showStringOnLcd1602("", 1, 32);
     }
@@ -816,7 +575,7 @@ namespace Environment {
     //% pos.fieldEditor="gridpicker"
     //% pos.fieldOptions.columns=16
     //% blockHidden=true
-    export function position1602(pos: LcdPosition1602): number {
+    export function position1602(pos: lcdPosition1602): number {
         return pos;
     }
 
@@ -829,12 +588,12 @@ namespace Environment {
     //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
     //% weight=79
     //% subcategory=LCD
-    export function setLcdBacklight(backlight: LcdBacklight): void {
+    export function setLcdBacklight(backlight: lcdBacklight): void {
         if (!lcdState && !connect()) {
             return;
         }
         lcdState.backlight = backlight;
-        send(Lcd.Command, 0);
+        send(lcd.Command, 0);
     }
 
 
@@ -845,7 +604,7 @@ namespace Environment {
        */
     //% subcategory=LCD
     //% blockId="lcd_set_address" block="Initialize LCD at I2C"
-    //% weight=100
+    //% weight=150
     export function connectLcd(): void {
 
         if (0 === pins.i2cReadNumber(39, NumberFormat.Int8LE, false)) {
@@ -859,7 +618,7 @@ namespace Environment {
 
         lcdState = {
             i2cAddress: 39,
-            backlight: LcdBacklight.On,
+            backlight: lcdBacklight.On,
             columns: 0,
             rows: 0,
             characters: undefined,
@@ -893,7 +652,7 @@ namespace Environment {
         const LCD_4BITMODE = 0x00;
         const LCD_2LINE = 0x08; // >= 2 lines
         const LCD_5x8DOTS = 0x00;
-        send(Lcd.Command, LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS);
+        send(lcd.Command, LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS);
         control.waitMicros(1000);
 
         // Configure display
@@ -902,7 +661,7 @@ namespace Environment {
         const LCD_CURSOROFF = 0x00;
         const LCD_BLINKOFF = 0x00;
         send(
-            Lcd.Command,
+            lcd.Command,
             LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF
         );
         control.waitMicros(1000);
@@ -912,7 +671,7 @@ namespace Environment {
         const LCD_ENTRYLEFT = 0x02;
         const LCD_ENTRYSHIFTDECREMENT = 0x00;
         send(
-            Lcd.Command,
+            lcd.Command,
             LCD_ENTRYMODESET | LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT
         );
         control.waitMicros(1000);
@@ -929,5 +688,243 @@ namespace Environment {
         return !!lcdState || connect();
     }
     //--------LCD1602-----------------------------------------------------
-}
 
+    //---Green House-----------------------------------
+    //% blockId="smarthon_motorfan"
+    //% block="Set Motor Fan to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=90
+    //% blockHidden=false
+    //% subcategory="Green House"
+    //% group="Green Housing"
+    export function turnMotorFan(intensity: number, pin: AnalogPin): void {
+        pins.analogWritePin(pin, intensity);
+    }
+
+    //--CO2 and TVOC Sensor (CCS811)----------------------------------------------------
+    let TVOC_OK = true
+    /* CO2*/
+    function indenvGasStatus(): number {
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        let GasStatus = pins.i2cReadNumber(90, NumberFormat.UInt8LE, false)
+        //basic.pause(200)
+        return GasStatus
+    }
+
+    function indenvGasReady(): boolean {
+        if (TVOC_OK != true) {
+            return false
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if ((pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 16) != 8) {
+            return false
+        }
+        return true
+    }
+    /**
+    * CO2 and TVOC Sensor (CCS811) Start
+    */
+    //% blockId="indenvStart" block="CCS811 Start"
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% weight=40
+    export function indenvStart(): void {
+        TVOC_OK = true
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        //basic.pause(200)
+        /* CJMCU-8118 CCS811 addr 0x5A reg 0x20 Read Device ID = 0x81 */
+        pins.i2cWriteNumber(90, 32, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) != 129) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+        /* CJMCU-8118 AppStart CCS811 addr 0x5A register 0xF4 */
+        pins.i2cWriteNumber(90, 244, NumberFormat.UInt8LE, false)
+        //basic.pause(200)
+        /* CJMCU-8118 CCS811 Driving Mode 1 addr 0x5A register 0x01 0x0110 */
+        pins.i2cWriteNumber(90, 272, NumberFormat.UInt16BE, false)
+        basic.pause(200)
+        /* CJMCU-8118 CCS811 Status addr 0x5A register 0x00 return 1 byte */
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 2 != 0) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (Math.idiv(pins.i2cReadNumber(90, NumberFormat.UInt8LE, false), 16) != 9) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+    }
+    /**
+     * Set TVOC and CO2 baseline (Baseline should be a decimal value)
+     * @param value  , eg: 33915
+     */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId=CCS811_setBaseline block="set CO2 and TVOC baseline|%value value"
+    //% weight=39
+    export function setBaseline(value: number): void {
+        let buffer: Buffer = pins.createBuffer(3);
+        buffer[0] = 0x20;
+        buffer[1] = value >> 8 & 0xff;
+        buffer[2] = value & 0xff;
+        pins.i2cWriteBuffer(90, buffer);
+
+    }
+    /**
+    * Read estimated CO2
+    */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId="indenvgeteCO2" block="Value of CO2"
+    //% weight=38
+    export function indenvgeteCO2(): number {
+
+        let i
+
+        i = 0
+
+        while (indenvGasReady() != true) {
+            basic.pause(200)
+            i = i + 1
+            if (i >= 10)
+                return -1;
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        return pins.i2cReadNumber(90, NumberFormat.UInt16BE, false)
+    }
+    /**
+    * Read Total VOC
+    */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId="indenvgetTVOC" block="Value of TVOC"
+    //% weight=37
+    export function indenvgetTVOC(): number {
+
+        let i
+
+        i = 0
+
+        while (indenvGasReady() != true) {
+            basic.pause(200)
+            i = i + 1
+            if (i >= 10)
+                return -1;
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
+    }
+    //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
+    //---USB Grow Light--------------------------------------------------
+    export enum growLightNum {
+        //% block="Off"
+        off = 0,
+        //% block="On"
+        on = 1
+    }
+    //% blockId="smarthon_growLight"
+    //% block="Set LED Grow Light %onoff at %pin"
+    //% subcategory="Green House"
+    //% group="Green Housing"
+    //% weight=89
+    export function growLight(onoff: growLightNum, pin: DigitalPin): void {
+        if (onoff) {
+            pins.digitalWritePin(pin, 1);
+        } else {
+            pins.digitalWritePin(pin, 0);
+        }
+    }
+    //---USB Grow Light--------------------------------------------------
+
+    //---Water-------------------------------------------
+    //% blockId="smarthon_plantservo"
+    //% block="Set Servo to degree %degree at %pin"
+    //% intensity.min=0 intensity.max=180
+    //% weight=50
+    //% subcategory="Water Garden"
+    export function turnServo(intensity: number, pin: AnalogPin): void {
+
+        pins.servoWritePin(pin, intensity)
+    }
+    /**
+         * get Water Level value (0~100)
+         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
+         */
+    //% blockId="ReadWaterLevel" 
+    //% block="value of water level(0~100) at pin %waterlevelpin"
+    //% blockHidden=false
+    //% subcategory="Water Garden"
+    //% weight=51
+    export function readWaterLevel(waterlevelpin: AnalogPin): number {
+        let voltage = 0;
+        let waterlevel = 0;
+        let readvalue = pins.analogReadPin(waterlevelpin)
+        readvalue -= 20
+        voltage = pins.map(
+            readvalue,
+            0,
+            950,
+            0,
+            100
+        );
+        waterlevel = voltage;
+        return Math.round(waterlevel * 100) / 100
+    }
+
+    /**
+        * get Water temperature value (0~100)
+        * @param watertemppin describe parameter here, eg: AnalogPin.P1
+        */
+    //% blockId="ReadWaterTemp" 
+    //% block="read water temperature at pin %watertemppin"
+    //% blockHidden=false
+    //% subcategory="Water Garden"
+    //% weight=52
+    export function readWaterTemp(watertemppin: AnalogPin): number {
+        // let voltage = 0;
+        let watertemp = 0.0;
+        let sum = 0;
+        let readvalue = 0;
+        for (let i = 0; i < 30; i++) {
+            sum += pins.analogReadPin(watertemppin);
+            basic.pause(10);
+        }
+        readvalue = sum / 30;
+        readvalue -= 399;
+        readvalue /= 15;
+        // voltage = pins.map(
+        //     readvalue,
+        //     0,
+        //     1023,
+        //     218,
+        //     393
+        // );
+        return Math.round(readvalue * 100) / 100
+    }
+    //----Water-----------------------
+    //----end of green Housing-----------------
+
+}

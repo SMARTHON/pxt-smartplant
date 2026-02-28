@@ -108,12 +108,13 @@ namespace environment {
      * @param lastvalue when read error will display last success value, eg:true
      * @param luSucc when read DHT11 get error then will read it again, eg:false
      * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:false 
+     * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:true
      */
-    //% block="Read Temperature & Humidity Sensor at pin %dataPin||Last Value %lastvalue |Loop untill success %luSucc |First loop untill success %fluSucc"
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin||Last Value %lastvalue |Loop untill success %luSucc |First loop untill success %fluSucc |Wait 2 seconds after read %wait2Second"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=52
-    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc:boolean = false): void {
+    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc:boolean = false, wait2Second:boolean = true): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
@@ -180,6 +181,8 @@ namespace environment {
                 _temperature = rawData[2]
                 _readSuccessful = true
                 _firReadSuccess = true
+                if (wait2Second) {
+                    basic.pause(2000)
                 return
             } else {
                 _errorCode = 4 // 數據異常

@@ -97,6 +97,7 @@ namespace environment {
     let _humidity: number = -999.0
     let _readSuccessful: boolean = false
     let _errorCode: number = 0
+    let _firReadSuccess:boolean = false
 
     // 使用固定長度的數組，避免動態分配
     let timings = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -104,15 +105,22 @@ namespace environment {
 
     /**
      * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
+     * @param lastvalue when read error will display last success value, eg:true
+     * @param luSucc when read DHT11 get error then will read it again, eg:false
+     * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:false 
      */
-    //% block="Read Temperature & Humidity Sensor at pin %dataPin|"
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin||Last Value %lastvalue |Loop untill success %luSucc |First loop untill success %fluSucc"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=52
-    export function dht11QueryData(dataPin: DigitalPin): void {
+    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc:boolean = false): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
+        if (!lastvalue){
+            _temperature = -999.0
+            _humidity = -999.0
+        }
 
         // 1. 發送啟動信號
         pins.digitalWritePin(dataPin, 0)
@@ -171,12 +179,21 @@ namespace environment {
                 _humidity = rawData[0]
                 _temperature = rawData[2]
                 _readSuccessful = true
-
+                _firReadSuccess = true
+                return
             } else {
                 _errorCode = 4 // 數據異常
             }
         } else {
             _errorCode = 3 // 校驗失敗
+        }
+        if ((_readSuccessful == false) && (luSucc == true)){
+            basic.pause(2000)
+            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
+        }
+        if ((_readSuccessful == false) && (fluSucc == true) && (_firReadSuccess == false)) {
+            basic.pause(2000)
+            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
         }
     }
 

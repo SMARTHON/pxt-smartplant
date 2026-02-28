@@ -97,7 +97,7 @@ namespace environment {
     let _humidity: number = -999.0
     let _readSuccessful: boolean = false
     let _errorCode: number = 0
-    let _firReadSuccess:boolean = false
+    let _firReadSuccess: boolean = false
 
     // 使用固定長度的數組，避免動態分配
     let timings = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -114,11 +114,11 @@ namespace environment {
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=52
-    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc:boolean = false, wait2Second:boolean = true): void {
+    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc: boolean = false, wait2Second: boolean = true): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
-        if (!lastvalue){
+        if (!lastvalue) {
             _temperature = -999.0
             _humidity = -999.0
         }
@@ -183,6 +183,7 @@ namespace environment {
                 _firReadSuccess = true
                 if (wait2Second) {
                     basic.pause(2000)
+                }
                 return
             } else {
                 _errorCode = 4 // 數據異常
@@ -190,7 +191,7 @@ namespace environment {
         } else {
             _errorCode = 3 // 校驗失敗
         }
-        if ((_readSuccessful == false) && (luSucc == true)){
+        if ((_readSuccessful == false) && (luSucc == true)) {
             basic.pause(2000)
             return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
         }

@@ -105,16 +105,17 @@ namespace environment {
 
     /**
      * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
+     * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:true 
      * @param lastvalue when read error will display last success value, eg:true
+     * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:false
      * @param luSucc when read DHT11 get error then will read it again, eg:false
-     * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:false 
-     * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:true
      */
-    //% block="Read Temperature & Humidity Sensor at pin %dataPin||Last Value %lastvalue |Loop untill success %luSucc |First loop untill success %fluSucc |Wait 2 seconds after read %wait2Second"
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin||First Read until success %fluSucc|Last value %lastvalue|wait 2 second after read %wait2Second|Every Read until success %luSucc"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
+    //% expandableArgumentMode="enabled"
     //% weight=52
-    export function dht11QueryData(dataPin: DigitalPin, lastvalue: boolean = true, luSucc: boolean = false, fluSucc: boolean = false, wait2Second: boolean = true): void {
+    export function dht11QueryData(dataPin: DigitalPin, fluSucc: boolean = true, lastvalue: boolean = true,wait2Second: boolean = false, luSucc: boolean = false): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
@@ -192,11 +193,11 @@ namespace environment {
             _errorCode = 3 // 校驗失敗
         }
         if ((_readSuccessful == false) && (luSucc == true)) {
-            basic.pause(2000)
+            basic.pause(500)
             return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
         }
         if ((_readSuccessful == false) && (fluSucc == true) && (_firReadSuccess == false)) {
-            basic.pause(2000)
+            basic.pause(500)
             return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
         }
     }

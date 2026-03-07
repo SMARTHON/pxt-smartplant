@@ -30,25 +30,16 @@ namespace environment {
         return raw_value;
     }
 
-    //% blockId="smarthon_waterpump"
-    //% block="Set Water pump to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=50
-    export function turnWaterpump(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
-
     //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
+    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
     //% intensity.min=0 intensity.max=1023
     //% weight=49
-    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number): void {
-
+    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
         pins.analogWritePin(pin, intensity);
-        basic.pause(time * 1000);
-        pins.analogWritePin(pin, 0);
-
+        if (time > 0) {
+            basic.pause(time * 1000);
+            pins.analogWritePin(pin, 0);
+        }
     }
 
 
@@ -712,12 +703,12 @@ namespace environment {
 
     //---Green House-----------------------------------
     //% blockId="smarthon_motorfan"
-    //% block="Set Motor Fan to intensity %intensity at %pin"
+    //% block="Set Ventilation Fan to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=90
     //% blockHidden=false
     //% subcategory="Green House"
-    //% group="Green Housing"
+    //% group=""
     export function turnMotorFan(intensity: number, pin: AnalogPin): void {
         pins.analogWritePin(pin, intensity);
     }
@@ -753,7 +744,7 @@ namespace environment {
     /**
     * CO2 and TVOC Sensor (CCS811) Start
     */
-    //% blockId="indenvStart" block="CCS811 Start"
+    //% blockId="indenvStart" block="initialize CO2 & TVOC Sensor at I2C"
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% weight=40
@@ -796,7 +787,7 @@ namespace environment {
      */
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
-    //% blockId=CCS811_setBaseline block="set CO2 and TVOC baseline|%value value"
+    //% blockId=CCS811_setBaseline block="set baseline|%value value"
     //% weight=39
     export function setBaseline(value: number): void {
         let buffer: Buffer = pins.createBuffer(3);
@@ -859,6 +850,16 @@ namespace environment {
         return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
     }
     //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
+    //%subcategory="Green House"
+    //%blockId=control_Servo
+    //%block="Turn Servo to %deg degree |at %pin"
+    //% weight=240
+    //% deg.min=0 deg.max=180
+    export function turn_servo(deg: number, pin: AnalogPin): void {
+        pins.servoWritePin(pin, deg)
+        basic.pause(500)
+    }
+   
     //---USB Grow Light--------------------------------------------------
     export enum growLightNum {
         //% block="Off"
@@ -866,18 +867,10 @@ namespace environment {
         //% block="On"
         on = 1
     }
-    //% blockId="smarthon_growLight"
-    //% block="Set LED Grow Light %onoff at %pin"
-    //% subcategory="Green House"
-    //% group="Green Housing"
-    //% weight=89
-    export function growLight(onoff: growLightNum, pin: DigitalPin): void {
-        if (onoff) {
-            pins.digitalWritePin(pin, 1);
-        } else {
-            pins.digitalWritePin(pin, 0);
-        }
-    }
+
+
+
+
     //---USB Grow Light--------------------------------------------------
 
     //---Water-------------------------------------------

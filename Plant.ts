@@ -110,7 +110,7 @@ namespace environment {
      * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:false
      * @param luSucc when read DHT11 get error then will read it again, eg:false
      */
-    //% block="Read Temperature & Humidity Sensor at pin %dataPin||First Read until success %fluSucc|Last value %lastvalue|wait 2 second after read %wait2Second|Every Read until success %luSucc"
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin||First Read until success %fluSucc|Last value %lastvalue|wait 2 second after read success %wait2Second|Every Read until success %luSucc"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% expandableArgumentMode="enabled"

@@ -30,19 +30,6 @@ namespace environment {
         return raw_value;
     }
 
-    //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=49
-    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
-        pins.analogWritePin(pin, intensity);
-        if (time > 0) {
-            basic.pause(time * 1000);
-            pins.analogWritePin(pin, 0);
-        }
-    }
-
-
     /**
      * get soil moisture value (0~100)
      * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
@@ -64,15 +51,6 @@ namespace environment {
         return Math.round(soilmoisture)
     }
 
-    //% blockId="smarthon_humdifier"
-    //% block="Set Humidifier to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=48
-
-    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
 
     //-------DHT11---------------------------------------------------
 
@@ -614,9 +592,41 @@ namespace environment {
      * Connects to the LCD at a given I2C address.
      * The addresses 39 (PCF8574) or 63 (PCF8574A) seem to be widely used.
        */
+
+    //% group="More"
+    //% blockId="smarthon_waterpump_period"
+    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=49
+    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
+        pins.analogWritePin(pin, intensity);
+        if (time > 0) {
+            basic.pause(time * 1000);
+            pins.analogWritePin(pin, 0);
+        }
+    }
+
+    //% group="More"
+    //% blockId="smarthon_humdifier"
+    //% block="Set Humidifier to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=48
+
+    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
+
+        pins.analogWritePin(pin, intensity);
+    }
+
+
+
+
+
+
     //% subcategory=LCD
     //% blockId="lcd_set_address" block="Initialize LCD at I2C"
     //% weight=150
+
+
     export function connectLcd(): void {
 
         if (0 === pins.i2cReadNumber(39, NumberFormat.Int8LE, false)) {
@@ -859,7 +869,7 @@ namespace environment {
         pins.servoWritePin(pin, deg)
         basic.pause(500)
     }
-   
+
     //---USB Grow Light--------------------------------------------------
     export enum growLightNum {
         //% block="Off"

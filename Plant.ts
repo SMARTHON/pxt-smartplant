@@ -214,6 +214,7 @@ namespace environment {
     //-------DHT11---------------------------------------------------
 
     //% subcategory=More
+    //% group=Output
     //% blockId="smarthon_waterpump_period"
     //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
     //% intensity.min=0 intensity.max=1023
@@ -227,6 +228,7 @@ namespace environment {
     }
 
     //% subcategory=More
+      //% group=Output
     //% blockId="smarthon_humdifier"
     //% block="Set Humidifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023

@@ -2,7 +2,7 @@
  * Custom blocks
  */
 //% weight=98 color=#7abb4b icon="\uf06c" block="SmartGarden"
-//by JOHN
+///by JOHN
 namespace environment {
 
     // keep track of services

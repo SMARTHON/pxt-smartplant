@@ -2,6 +2,7 @@
  * Custom blocks
  */
 //% weight=98 color=#7abb4b icon="\uf06c" block="SmartGarden"
+//v1.1.4 by JOHN
 namespace environment {
 
     // keep track of services
@@ -30,28 +31,6 @@ namespace environment {
         return raw_value;
     }
 
-    //% blockId="smarthon_waterpump"
-    //% block="Set Water pump to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=50
-    export function turnWaterpump(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
-
-    //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=49
-    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number): void {
-
-        pins.analogWritePin(pin, intensity);
-        basic.pause(time * 1000);
-        pins.analogWritePin(pin, 0);
-
-    }
-
-
     /**
      * get soil moisture value (0~100)
      * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
@@ -73,15 +52,6 @@ namespace environment {
         return Math.round(soilmoisture)
     }
 
-    //% blockId="smarthon_humdifier"
-    //% block="Set Humidifier to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=48
-
-    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
 
     //-------DHT11---------------------------------------------------
 
@@ -244,6 +214,31 @@ namespace environment {
     }
 
     //-------DHT11---------------------------------------------------
+
+    //% subcategory=More
+    //% group=Output
+    //% blockId="smarthon_waterpump_period"
+    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=390
+    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
+        pins.analogWritePin(pin, intensity);
+        if (time > 0) {
+            basic.pause(time * 1000);
+            pins.analogWritePin(pin, 0);
+        }
+    }
+
+    //% subcategory=More
+      //% group=Output
+    //% blockId="smarthon_humdifier"
+    //% block="Set Humidifier to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=380
+    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
+
+        pins.analogWritePin(pin, intensity);
+    }
 
 
     //-----LCD1602------------------------------------------------
@@ -538,95 +533,15 @@ namespace environment {
         }
     }
 
-
-
-    /**
-      * Displays a text on a LCD1602 in the given position range.
-      * The text will be cropped if it is longer than the provided length.
-      * If there is space left, it will be filled with pad characters.
-      * @param text the text to show, eg: "Smarthon"
-      * @param startPosition the start position on the LCD, [1 - 32]
-      * @param length the maximum space used on the LCD, eg: 16
-      * @param option configures alignment, eg: TextOption.Left
-      */
-    //% subcategory=LCD
-    //% blockId="lcd_show_string_on_1602"
-    //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
-    //% text.shadowOptions.toString=true
-    //% length.min=1 length.max=32 length.fieldOptions.precision=1
-    //% expandableArgumentMode="toggle"
-    //% inlineInputMode="inline"
-    //% weight=149
-    export function showStringOnLcd1602(
-        text: string,
-        startPosition: number,
-        length: number,
-        option?: textOption
-    ): void {
-        updateCharacterBuffer(
-            text,
-            startPosition - 1,
-            length,
-            16,
-            2,
-            toAlignment(option),
-            " "
-        );
-    }
-
-
-
-    /**
-       * Clears the LCD1602 completely.
-       */
-    //% subcategory=LCD
-    //% blockId="lcd_clear_1602" block="LCD clear display"
-    //% weight=130
-    export function clearLcd1602(): void {
-        showStringOnLcd1602("", 1, 32);
-    }
-
-
-    /**
-     * Turns a LCD position into a number.
-     * @param pos the LCD position, eg: Environment.LcdPosition1602.Pos1
-     */
-    //% subcategory=LCD
-    //% blockId=lcd_position_1602
-    //% block="%pos"
-    //% pos.fieldEditor="gridpicker"
-    //% pos.fieldOptions.columns=16
-    //% blockHidden=true
-    export function position1602(pos: lcdPosition1602): number {
-        return pos;
-    }
-
-
-
-    /**
-     * Enables or disables the backlight of the LCD.
-     * @param backlight new state of backlight, eg: LcdBacklight.On
-     */
-    //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
-    //% weight=79
-    //% subcategory=LCD
-    export function setLcdBacklight(backlight: lcdBacklight): void {
-        if (!lcdState && !connect()) {
-            return;
-        }
-        lcdState.backlight = backlight;
-        send(lcd.Command, 0);
-    }
-
-
-
     /**
      * Connects to the LCD at a given I2C address.
      * The addresses 39 (PCF8574) or 63 (PCF8574A) seem to be widely used.
        */
-    //% subcategory=LCD
+
+    //% subcategory=More
+    //% group=LCD
     //% blockId="lcd_set_address" block="Initialize LCD at I2C"
-    //% weight=150
+    //% weight=370
     export function connectLcd(): void {
 
         if (0 === pins.i2cReadNumber(39, NumberFormat.Int8LE, false)) {
@@ -700,11 +615,87 @@ namespace environment {
     }
 
     /**
+      * Displays a text on a LCD1602 in the given position range.
+      * The text will be cropped if it is longer than the provided length.
+      * If there is space left, it will be filled with pad characters.
+      * @param text the text to show, eg: "Smarthon"
+      * @param startPosition the start position on the LCD, [1 - 32]
+      * @param length the maximum space used on the LCD, eg: 16
+      * @param option configures alignment, eg: TextOption.Left
+      */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId="lcd_show_string_on_1602"
+    //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
+    //% text.shadowOptions.toString=true
+    //% length.min=1 length.max=32 length.fieldOptions.precision=1
+    //% expandableArgumentMode="toggle"
+    //% inlineInputMode="inline"
+    //% weight=360
+    export function showStringOnLcd1602(
+        text: string,
+        startPosition: number,
+        length: number,
+        option?: textOption
+    ): void {
+        updateCharacterBuffer(
+            text,
+            startPosition - 1,
+            length,
+            16,
+            2,
+            toAlignment(option),
+            " "
+        );
+    }
+
+    /**
+       * Clears the LCD1602 completely.
+       */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId="lcd_clear_1602" block="LCD clear display"
+    //% weight=350
+    export function clearLcd1602(): void {
+        showStringOnLcd1602("", 1, 32);
+    }
+
+    /**
+     * Enables or disables the backlight of the LCD.
+     * @param backlight new state of backlight, eg: LcdBacklight.On
+     */
+    //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
+    //% group=LCD
+    //% weight=340
+    //% subcategory=More
+    export function setLcdBacklight(backlight: lcdBacklight): void {
+        if (!lcdState && !connect()) {
+            return;
+        }
+        lcdState.backlight = backlight;
+        send(lcd.Command, 0);
+    }
+
+    /**
+     * Turns a LCD position into a number.
+     * @param pos the LCD position, eg: Environment.LcdPosition1602.Pos1
+     */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId=lcd_position_1602
+    //% block="%pos"
+    //% pos.fieldEditor="gridpicker"
+    //% pos.fieldOptions.columns=16
+    //% blockHidden=true
+    export function position1602(pos: lcdPosition1602): number {
+        return pos;
+    }
+
+    /**
      * Returns true if a LCD is connected. False otherwise.
      */
-    //% subcategory=LCD
+    //% subcategory=More
     //% blockId="lcd_is_connected" block="LCD is connected"
-    //% weight=69
     //% blockHidden=true
     export function isLcdConnected(): boolean {
         return !!lcdState || connect();
@@ -713,12 +704,12 @@ namespace environment {
 
     //---Green House-----------------------------------
     //% blockId="smarthon_motorfan"
-    //% block="Set Motor Fan to intensity %intensity at %pin"
+    //% block="Set Ventilation Fan to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=90
     //% blockHidden=false
     //% subcategory="Green House"
-    //% group="Green Housing"
+    //% group=""
     export function turnMotorFan(intensity: number, pin: AnalogPin): void {
         pins.analogWritePin(pin, intensity);
     }
@@ -754,7 +745,7 @@ namespace environment {
     /**
     * CO2 and TVOC Sensor (CCS811) Start
     */
-    //% blockId="indenvStart" block="CCS811 Start"
+    //% blockId="indenvStart" block="initialize CO2 & TVOC Sensor at I2C"
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% weight=40
@@ -797,7 +788,7 @@ namespace environment {
      */
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
-    //% blockId=CCS811_setBaseline block="set CO2 and TVOC baseline|%value value"
+    //% blockId=CCS811_setBaseline block="set baseline|%value value"
     //% weight=39
     export function setBaseline(value: number): void {
         let buffer: Buffer = pins.createBuffer(3);
@@ -860,6 +851,16 @@ namespace environment {
         return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
     }
     //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
+    //%subcategory="Green House"
+    //%blockId=control_Servo
+    //%block="Turn Servo to %deg degree |at %pin"
+    //% weight=100
+    //% deg.min=0 deg.max=180
+    export function turn_servo(deg: number, pin: AnalogPin): void {
+        pins.servoWritePin(pin, deg)
+        basic.pause(500)
+    }
+
     //---USB Grow Light--------------------------------------------------
     export enum growLightNum {
         //% block="Off"
@@ -867,18 +868,10 @@ namespace environment {
         //% block="On"
         on = 1
     }
-    //% blockId="smarthon_growLight"
-    //% block="Set LED Grow Light %onoff at %pin"
-    //% subcategory="Green House"
-    //% group="Green Housing"
-    //% weight=89
-    export function growLight(onoff: growLightNum, pin: DigitalPin): void {
-        if (onoff) {
-            pins.digitalWritePin(pin, 1);
-        } else {
-            pins.digitalWritePin(pin, 0);
-        }
-    }
+
+
+
+
     //---USB Grow Light--------------------------------------------------
 
     //---Water-------------------------------------------

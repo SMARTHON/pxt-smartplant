@@ -1,8 +1,9 @@
 /**
  * Custom blocks
  */
-//% weight=98 color=#7abb4b icon="\uf06c" block="Smartplant"
-namespace Environment {
+//% weight=98 color=#7abb4b icon="\uf06c" block="SmartGarden"
+//v1.1.4 by JOHN
+namespace environment {
 
     // keep track of services
     //let rainMonitorStarted = false;
@@ -13,114 +14,15 @@ namespace Environment {
     //let numWindTurns = 0
     //let windMPH = 0
 
-    //-------DHT11---------------------------------------------------
-
-
-    export enum DHT11dataType {
-        //% block="temperature"
-        temperature,
-        //% block="humidity"
-        humidity
-    }
-    let temp = 0
-    let temp_pin = 0
-    let _temperature: number = -999.0
-    let _humidity: number = -999.0
-    let _readSuccessful: boolean = false
-    let _sensorresponding: boolean = false
-    let _firsttime: boolean = true
-    let _last_successful_query_temperature: number = 0
-    let _last_successful_query_humidity: number = 0
-
-
-    //% block="Get DHT11 at pin %dataPin|"
-    function dht11_queryData(dataPin: DigitalPin) {
-
-        if (_firsttime == true) {
-            _firsttime = false
-            dht11_queryData(dataPin)
-        }
-        //initialize
-        let startTime: number = 0
-        let endTime: number = 0
-        let checksum: number = 0
-        let checksumTmp: number = 0
-        let dataArray: boolean[] = []
-        let resultArray: number[] = []
-        for (let index = 0; index < 40; index++) dataArray.push(false)
-        for (let index = 0; index < 5; index++) resultArray.push(0)
-        _humidity = 0
-        _temperature = 0
-        _readSuccessful = false
-
-
-        //request data
-        pins.digitalWritePin(dataPin, 0) //begin protocol
-        basic.pause(18)
-        pins.setPull(dataPin, PinPullMode.PullUp) //pull up data pin if needed
-        pins.digitalReadPin(dataPin)
-        control.waitMicros(40)
-
-        if (pins.digitalReadPin(dataPin) == 1) {
-            //if no respone,exit the loop to avoid Infinity loop
-            pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
-        }
-        else {
-            pins.setPull(dataPin, PinPullMode.PullNone) //release pull up
-            while (pins.digitalReadPin(dataPin) == 0); //sensor response
-            while (pins.digitalReadPin(dataPin) == 1); //sensor response
-
-            //read data (5 bytes)
-            for (let index = 0; index < 40; index++) {
-                startTime = input.runningTimeMicros()
-                while (pins.digitalReadPin(dataPin) == 1) {
-                    endTime = input.runningTimeMicros()
-                    if ((endTime - startTime) > 150) { break; }
-                };
-                while (pins.digitalReadPin(dataPin) == 0) {
-                    endTime = input.runningTimeMicros()
-                    if ((endTime - startTime) > 150) { break; }
-                };
-                control.waitMicros(28)
-                //if sensor pull up data pin for more than 28 us it means 1, otherwise 0
-                if (pins.digitalReadPin(dataPin) == 1) dataArray[index] = true
-            }
-
-            //convert byte number array to integer
-            for (let index = 0; index < 5; index++)
-                for (let index2 = 0; index2 < 8; index2++)
-                    if (dataArray[8 * index + index2]) resultArray[index] += 2 ** (7 - index2)
-
-            //verify checksum
-            checksumTmp = resultArray[0] + resultArray[1] + resultArray[2] + resultArray[3]
-            checksum = resultArray[4]
-            if (checksumTmp >= 512) checksumTmp -= 512
-            if (checksumTmp >= 256) checksumTmp -= 256
-            if (checksum == checksumTmp) _readSuccessful = true
-
-            //read data if checksum ok
-            if (_readSuccessful) {
-                _humidity = resultArray[0] + resultArray[1] / 100
-                _temperature = resultArray[2] + resultArray[3] / 100
-                _last_successful_query_humidity = _humidity
-                _last_successful_query_temperature = _temperature
-            } else {
-                _humidity = _last_successful_query_humidity
-                _temperature = _last_successful_query_temperature
-            }
-        }
-        //wait 1.5 sec after query
-        basic.pause(1500)
-    }
-
     let BH1750_I2C_ADDR = 35;
     pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
 
     /**
     * get light intensity value from bh1750
     */
-    //% blockId="readBH1750" block="value of light intensity(Lx) from BH1750" group="BH1750/Water pump"
-	//% weight=90
+    //% blockId="readBH1750" 
+    //% block="value of light intensity(Lx) from BH1750" 
+    //% weight=80
     export function getIntensity(): number {
         let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
 
@@ -129,59 +31,14 @@ namespace Environment {
         return raw_value;
     }
 
-    //% blockId="smarthon_waterpump"
-    //% block="Set Water pump to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=71
-    //% group="BH1750/Water pump"
-    export function TurnWaterpump(intensity: number, pin: AnalogPin): void {
-
-        pins.analogWritePin(pin, intensity);
-    }
-
-    //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin for %time sec"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=70
-    //% group="BH1750/Water pump"
-    export function TurnWaterpump_period(intensity: number, pin: AnalogPin, time: number): void {
-
-        pins.analogWritePin(pin, intensity);
-        basic.pause(time * 1000);
-        pins.analogWritePin(pin, 0);
-
-    }
-    
-    //% block="DHT11 Read %dht11data| at pin %dht11pin|"
-    //% weight=90
-    //% group="Soil/Green Housing"
-
-    export function readData(dht11data: DHT11dataType, dht11pin: DigitalPin): number {
-        // querydata
-        dht11_queryData(dht11pin)
-        //return temperature /humidity
-        // if (dht11data == DHT11dataType.temperature && _readSuccessful)
-        //     return Math.round(_temperature)
-        // else if (dht11data == DHT11dataType.humidity && _readSuccessful)
-        //     return Math.round(_humidity)
-        // else return 0
-
-        if (dht11data == DHT11dataType.temperature) {
-            return Math.round(_temperature)
-        }
-        else
-            return Math.round(_humidity)
-    }
-
-
     /**
      * get soil moisture value (0~100)
      * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
      */
-    //% blockId="readsoilmoisture" block="value of soil moisture(0~100) at pin %soilhumiditypin"
-    //% group="Soil/Green Housing"
-	//% weight=89
-    export function ReadSoilHumidity(soilmoisturepin: AnalogPin): number {
+    //% blockId="readsoilmoisture" 
+    //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
+    //% weight=78
+    export function readSoilHumidity(soilmoisturepin: AnalogPin): number {
         let voltage = 0;
         let soilmoisture = 0;
         voltage = pins.map(
@@ -195,65 +52,197 @@ namespace Environment {
         return Math.round(soilmoisture)
     }
 
+
+    //-------DHT11---------------------------------------------------
+
+
+    export enum tempDegree {
+        //% block="°C"
+        degreeCelsius,
+        //% block="°F"
+        degreeFahrenheit
+    }
+
+    let _temperature: number = -999.0
+    let _humidity: number = -999.0
+    let _readSuccessful: boolean = false
+    let _errorCode: number = 0
+    let _firReadSuccess: boolean = false
+
+    // 使用固定長度的數組，避免動態分配
+    let timings = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    let rawData = [0, 0, 0, 0, 0]
+
+    /**
+     * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
+     * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:true 
+     * @param lastvalue when read error will display last success value, eg:true
+     * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:false
+     * @param luSucc when read DHT11 get error then will read it again, eg:false
+     */
+    //% block="Read Temperature & Humidity Sensor at pin %dataPin||First Read until success %fluSucc|Last value %lastvalue|wait 2 second after read success %wait2Second|Every Read until success %luSucc"
+    //% blockId="get_dht11_value"
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% expandableArgumentMode="enabled"
+    //% weight=52
+    export function dht11QueryData(dataPin: DigitalPin, fluSucc: boolean = true, lastvalue: boolean = true,wait2Second: boolean = false, luSucc: boolean = false): void {
+        //initialize
+        _readSuccessful = false
+        _errorCode = 0
+        if (!lastvalue) {
+            _temperature = -999.0
+            _humidity = -999.0
+        }
+
+        // 1. 發送啟動信號
+        pins.digitalWritePin(dataPin, 0)
+        basic.pause(18)
+
+        pins.setPull(dataPin, PinPullMode.PullUp)
+        pins.digitalReadPin(dataPin)
+        control.waitMicros(40)
+
+        // 2. 等待傳感器響應
+        if (pins.digitalReadPin(dataPin) == 1) {
+            _errorCode = 1
+            return
+        }
+
+        // wait signal
+        while (pins.digitalReadPin(dataPin) == 0);
+        while (pins.digitalReadPin(dataPin) == 1);
+
+        for (let i = 0; i < 40; i++) {
+            while (pins.digitalReadPin(dataPin) == 0); // waiting
+
+            let count = 0
+            while (pins.digitalReadPin(dataPin) == 1) {
+                count++
+                if (count > 2000) {
+                    _errorCode = 2
+                    break // Timeout
+                }
+            }
+            timings[i] = count
+        }
+
+        let max = 0
+        let min = 1000
+        for (let i = 0; i < 40; i++) {
+            if (timings[i] > max) max = timings[i]
+            if (timings[i] < min) min = timings[i]
+        }
+        let threshold = (max + min) >> 1 // 取中間值作為 0 和 1 的分界
+
+        // reset rawData
+        for (let k = 0; k < 5; k++) rawData[k] = 0
+
+        for (let j = 0; j < 40; j++) {
+            if (timings[j] > threshold) {
+                let index = Math.floor(j / 8)
+                let shift = 7 - (j % 8)
+                rawData[index] |= (1 << shift)
+            }
+        }
+
+        // 5. 校驗與賦值
+        if ((rawData[0] + rawData[1] + rawData[2] + rawData[3]) % 256 == rawData[4]) {
+            if (rawData[0] != -999 || rawData[2] != -999) {
+                _humidity = rawData[0]
+                _temperature = rawData[2]
+                _readSuccessful = true
+                _firReadSuccess = true
+                if (wait2Second) {
+                    basic.pause(2000)
+                }
+                return
+            } else {
+                _errorCode = 4 // 數據異常
+            }
+        } else {
+            _errorCode = 3 // 校驗失敗
+        }
+        if ((_readSuccessful == false) && (luSucc == true)) {
+            basic.pause(500)
+            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
+        }
+        if ((_readSuccessful == false) && (fluSucc == true) && (_firReadSuccess == false)) {
+            basic.pause(500)
+            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
+        }
+    }
+
+    /**
+     * Get the Temperature value (degree in Celsius or Fahrenheit) after queried the Temperature and Humidity sensor
+     */
+
+    //% block="Get Temperature |%temp_degree"
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=51
+    export function readTemperatureData(tempdegree: tempDegree): number {
+        // querydata
+        if (tempdegree == tempDegree.degreeCelsius) {
+            return Math.round(_temperature * 100) / 100
+        }
+        else {
+            return Math.round((_temperature * 1.8) + 32)
+        }
+    }
+
+    /**
+     * Get the humidity value (in percentage) after queried the Temperature and Humidity sensor
+     */
+    //% block="Get Humidity"
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=50
+    export function readHumidityData(): number {
+        // querydata
+
+        return Math.round(_humidity)
+
+
+    }
+
+    /**
+    * Get the error code after query (for debugging)
+    */
+    //% block="Get Error Code"
+    //% group="Temperature and Humidity Sensor (DHT11)"
+    //% weight=49
+    export function getErrorCode(): number {
+        return _errorCode
+    }
+
+    //-------DHT11---------------------------------------------------
+
+    //% subcategory=More
+    //% group=Output
+    //% blockId="smarthon_waterpump_period"
+    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=390
+    export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
+        pins.analogWritePin(pin, intensity);
+        if (time > 0) {
+            basic.pause(time * 1000);
+            pins.analogWritePin(pin, 0);
+        }
+    }
+
+    //% subcategory=More
+      //% group=Output
     //% blockId="smarthon_humdifier"
     //% block="Set Humidifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
-    //% weight=88
-    //% group="Soil/Green Housing"
-
-    export function TurnHumdifier(intensity: number, pin: AnalogPin): void {
+    //% weight=380
+    export function turnHumdifier(intensity: number, pin: AnalogPin): void {
 
         pins.analogWritePin(pin, intensity);
     }
 
-//Water
-//---------------------------
 
-    //% blockId="smarthon_plantservo"
-    //% block="Set Servo to degree %degree at %pin"
-    //% intensity.min=0 intensity.max=180
-    //% weight=89
-    //% group="Water"
-    export function TurnServo(intensity: number, pin: AnalogPin): void {
-
-        pins.servoWritePin(pin, intensity)
-    }
-    /**
-         * get Water Level value (0~100)
-         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
-         */
-    //% blockId="ReadWaterLevel" block="value of water level(0~100) at pin %waterlevelpin"
-    //% blockHidden=false
-	//% group="Water"
-	//% weight=90
-    export function ReadWaterLevel(waterlevelpin: AnalogPin): number {
-        let voltage = 0;
-        let waterlevel = 0;
-        voltage = pins.map(
-            pins.analogReadPin(waterlevelpin),
-            0,
-            1023,
-            0,
-            100
-        );
-        waterlevel = voltage;
-        return Math.round(waterlevel)
-    }
-    //% blockId="smarthon_motorfan"
-    //% block="Set Motor Fan to intensity %intensity at %pin"
-    //% intensity.min=0 intensity.max=1023
-    //% weight=72
-    //% blockHidden=false
-	//% group="Soil/Green Housing"
-    export function TurnMotorFan(intensity: number, pin: AnalogPin): void {
-        pins.analogWritePin(pin, intensity);
-    }
-
-    //LCD1602
-    //-----------------------------------------------------
-
-
-    export enum LcdPosition1602 {
+    //-----LCD1602------------------------------------------------
+    export enum lcdPosition1602 {
         //% block="1"
         Pos1 = 1,
         //% block="2"
@@ -322,14 +311,14 @@ namespace Environment {
 
 
 
-    export enum LcdBacklight {
+    export enum lcdBacklight {
         //% block="off"
         Off = 0,
         //% block="on"
         On = 8
     }
 
-    export enum TextAlignment {
+    export enum textAlignment {
         //% block="left-aligned"
         Left,
         //% block="right-aligned"
@@ -338,7 +327,7 @@ namespace Environment {
         Center
     }
 
-    export enum TextOption {
+    export enum textOption {
         //% block="align left"
         AlignLeft,
         //% block="align right"
@@ -348,14 +337,14 @@ namespace Environment {
     }
 
 
-    export enum Lcd {
+    export enum lcd {
         Command = 0,
         Data = 1
     }
 
     interface LcdState {
         i2cAddress: uint8;
-        backlight: LcdBacklight;
+        backlight: lcdBacklight;
         characters: Buffer;
         rows: uint8;
         columns: uint8;
@@ -405,12 +394,12 @@ namespace Environment {
 
     // Send command
     function sendCommand(command: number) {
-        send(Lcd.Command, command);
+        send(lcd.Command, command);
     }
 
     // Send data
     function sendData(data: number) {
-        send(Lcd.Data, data);
+        send(lcd.Data, data);
     }
 
     // Set cursor
@@ -425,7 +414,7 @@ namespace Environment {
         length: number,
         columns: number,
         rows: number,
-        alignment: TextAlignment,
+        alignment: textAlignment,
         pad: string
     ): void {
         if (!lcdState && !connect()) {
@@ -452,7 +441,7 @@ namespace Environment {
                 lcdState.columns * lcdState.rows,
                 lcdState.columns,
                 lcdState.rows,
-                TextAlignment.Left,
+                textAlignment.Left,
                 " "
             );
         }
@@ -473,10 +462,10 @@ namespace Environment {
         // Add padding at the beginning
         let paddingEnd = offset;
 
-        if (alignment === TextAlignment.Right) {
+        if (alignment === textAlignment.Right) {
             paddingEnd = endPosition - text.length;
         }
-        else if (alignment === TextAlignment.Center) {
+        else if (alignment === textAlignment.Center) {
             paddingEnd = offset + Math.idiv(endPosition - offset - text.length, 2);
         }
 
@@ -532,109 +521,27 @@ namespace Environment {
         }
     }
 
-    function toAlignment(option?: TextOption): TextAlignment {
+    function toAlignment(option?: textOption): textAlignment {
         if (
-            option === TextOption.AlignRight
+            option === textOption.AlignRight
         ) {
-            return TextAlignment.Right;
-        } else if (option === TextOption.AlignCenter) {
-            return TextAlignment.Center;
+            return textAlignment.Right;
+        } else if (option === textOption.AlignCenter) {
+            return textAlignment.Center;
         } else {
-            return TextAlignment.Left;
+            return textAlignment.Left;
         }
     }
-
-
-
-
-
-    /**
-      * Displays a text on a LCD1602 in the given position range.
-      * The text will be cropped if it is longer than the provided length.
-      * If there is space left, it will be filled with pad characters.
-      * @param text the text to show, eg: "Smarthon"
-      * @param startPosition the start position on the LCD, [1 - 32]
-      * @param length the maximum space used on the LCD, eg: 16
-      * @param option configures alignment, eg: TextOption.Left
-      */
-    //% subcategory=LCD
-    //% blockId="lcd_show_string_on_1602"
-    //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
-    //% text.shadowOptions.toString=true
-    //% length.min=1 length.max=32 length.fieldOptions.precision=1
-    //% expandableArgumentMode="toggle"
-    //% inlineInputMode="inline"
-    //% weight=90
-    export function showStringOnLcd1602(
-        text: string,
-        startPosition: number,
-        length: number,
-        option?: TextOption
-    ): void {
-        updateCharacterBuffer(
-            text,
-            startPosition - 1,
-            length,
-            16,
-            2,
-            toAlignment(option),
-            " "
-        );
-    }
-
-
-
-    /**
-       * Clears the LCD1602 completely.
-       */
-    //% subcategory=LCD
-    //% blockId="lcd_clear_1602" block="LCD clear display"
-    //% weight=75
-    export function clearLcd1602(): void {
-        showStringOnLcd1602("", 1, 32);
-    }
-
-
-    /**
-     * Turns a LCD position into a number.
-     * @param pos the LCD position, eg: LcdPosition1602.Pos1
-     */
-    //% subcategory=LCD
-    //% blockId=lcd_position_1602
-    //% block="%pos"
-    //% pos.fieldEditor="gridpicker"
-    //% pos.fieldOptions.columns=16
-    //% blockHidden=true
-    export function position1602(pos: LcdPosition1602): number {
-        return pos;
-    }
-
-
-
-    /**
-     * Enables or disables the backlight of the LCD.
-     * @param backlight new state of backlight, eg: LcdBacklight.On
-     */
-    //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
-    //% weight=79
-    //% subcategory=LCD
-    export function setLcdBacklight(backlight: LcdBacklight): void {
-        if (!lcdState && !connect()) {
-            return;
-        }
-        lcdState.backlight = backlight;
-        send(Lcd.Command, 0);
-    }
-
-
 
     /**
      * Connects to the LCD at a given I2C address.
      * The addresses 39 (PCF8574) or 63 (PCF8574A) seem to be widely used.
        */
-    //% subcategory=LCD
+
+    //% subcategory=More
+    //% group=LCD
     //% blockId="lcd_set_address" block="Initialize LCD at I2C"
-    //% weight=100
+    //% weight=370
     export function connectLcd(): void {
 
         if (0 === pins.i2cReadNumber(39, NumberFormat.Int8LE, false)) {
@@ -648,7 +555,7 @@ namespace Environment {
 
         lcdState = {
             i2cAddress: 39,
-            backlight: LcdBacklight.On,
+            backlight: lcdBacklight.On,
             columns: 0,
             rows: 0,
             characters: undefined,
@@ -682,7 +589,7 @@ namespace Environment {
         const LCD_4BITMODE = 0x00;
         const LCD_2LINE = 0x08; // >= 2 lines
         const LCD_5x8DOTS = 0x00;
-        send(Lcd.Command, LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS);
+        send(lcd.Command, LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS);
         control.waitMicros(1000);
 
         // Configure display
@@ -691,7 +598,7 @@ namespace Environment {
         const LCD_CURSOROFF = 0x00;
         const LCD_BLINKOFF = 0x00;
         send(
-            Lcd.Command,
+            lcd.Command,
             LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF
         );
         control.waitMicros(1000);
@@ -701,22 +608,338 @@ namespace Environment {
         const LCD_ENTRYLEFT = 0x02;
         const LCD_ENTRYSHIFTDECREMENT = 0x00;
         send(
-            Lcd.Command,
+            lcd.Command,
             LCD_ENTRYMODESET | LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT
         );
         control.waitMicros(1000);
     }
 
     /**
+      * Displays a text on a LCD1602 in the given position range.
+      * The text will be cropped if it is longer than the provided length.
+      * If there is space left, it will be filled with pad characters.
+      * @param text the text to show, eg: "Smarthon"
+      * @param startPosition the start position on the LCD, [1 - 32]
+      * @param length the maximum space used on the LCD, eg: 16
+      * @param option configures alignment, eg: TextOption.Left
+      */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId="lcd_show_string_on_1602"
+    //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
+    //% text.shadowOptions.toString=true
+    //% length.min=1 length.max=32 length.fieldOptions.precision=1
+    //% expandableArgumentMode="toggle"
+    //% inlineInputMode="inline"
+    //% weight=360
+    export function showStringOnLcd1602(
+        text: string,
+        startPosition: number,
+        length: number,
+        option?: textOption
+    ): void {
+        updateCharacterBuffer(
+            text,
+            startPosition - 1,
+            length,
+            16,
+            2,
+            toAlignment(option),
+            " "
+        );
+    }
+
+    /**
+       * Clears the LCD1602 completely.
+       */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId="lcd_clear_1602" block="LCD clear display"
+    //% weight=350
+    export function clearLcd1602(): void {
+        showStringOnLcd1602("", 1, 32);
+    }
+
+    /**
+     * Enables or disables the backlight of the LCD.
+     * @param backlight new state of backlight, eg: LcdBacklight.On
+     */
+    //% blockId="makerbit_lcd_backlight" block="LCD backlight %backlight"
+    //% group=LCD
+    //% weight=340
+    //% subcategory=More
+    export function setLcdBacklight(backlight: lcdBacklight): void {
+        if (!lcdState && !connect()) {
+            return;
+        }
+        lcdState.backlight = backlight;
+        send(lcd.Command, 0);
+    }
+
+    /**
+     * Turns a LCD position into a number.
+     * @param pos the LCD position, eg: Environment.LcdPosition1602.Pos1
+     */
+    //% subcategory=More
+    //% group=LCD
+    //% blockId=lcd_position_1602
+    //% block="%pos"
+    //% pos.fieldEditor="gridpicker"
+    //% pos.fieldOptions.columns=16
+    //% blockHidden=true
+    export function position1602(pos: lcdPosition1602): number {
+        return pos;
+    }
+
+    /**
      * Returns true if a LCD is connected. False otherwise.
      */
-    //% subcategory=LCD
+    //% subcategory=More
     //% blockId="lcd_is_connected" block="LCD is connected"
-    //% weight=69
     //% blockHidden=true
     export function isLcdConnected(): boolean {
         return !!lcdState || connect();
     }
+    //--------LCD1602-----------------------------------------------------
+
+    //---Green House-----------------------------------
+    //% blockId="smarthon_motorfan"
+    //% block="Set Ventilation Fan to intensity %intensity at %pin"
+    //% intensity.min=0 intensity.max=1023
+    //% weight=90
+    //% blockHidden=false
+    //% subcategory="Green House"
+    //% group=""
+    export function turnMotorFan(intensity: number, pin: AnalogPin): void {
+        pins.analogWritePin(pin, intensity);
+    }
+
+    //--CO2 and TVOC Sensor (CCS811)----------------------------------------------------
+    let TVOC_OK = true
+    /* CO2*/
+    function indenvGasStatus(): number {
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        let GasStatus = pins.i2cReadNumber(90, NumberFormat.UInt8LE, false)
+        //basic.pause(200)
+        return GasStatus
+    }
+
+    function indenvGasReady(): boolean {
+        if (TVOC_OK != true) {
+            return false
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if ((pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 16) != 8) {
+            return false
+        }
+        return true
+    }
+    /**
+    * CO2 and TVOC Sensor (CCS811) Start
+    */
+    //% blockId="indenvStart" block="initialize CO2 & TVOC Sensor at I2C"
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% weight=40
+    export function indenvStart(): void {
+        TVOC_OK = true
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        //basic.pause(200)
+        /* CJMCU-8118 CCS811 addr 0x5A reg 0x20 Read Device ID = 0x81 */
+        pins.i2cWriteNumber(90, 32, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) != 129) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+        /* CJMCU-8118 AppStart CCS811 addr 0x5A register 0xF4 */
+        pins.i2cWriteNumber(90, 244, NumberFormat.UInt8LE, false)
+        //basic.pause(200)
+        /* CJMCU-8118 CCS811 Driving Mode 1 addr 0x5A register 0x01 0x0110 */
+        pins.i2cWriteNumber(90, 272, NumberFormat.UInt16BE, false)
+        basic.pause(200)
+        /* CJMCU-8118 CCS811 Status addr 0x5A register 0x00 return 1 byte */
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 2 != 0) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+        pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        if (Math.idiv(pins.i2cReadNumber(90, NumberFormat.UInt8LE, false), 16) != 9) {
+            TVOC_OK = false
+        }
+        basic.pause(200)
+    }
+    /**
+     * Set TVOC and CO2 baseline (Baseline should be a decimal value)
+     * @param value  , eg: 33915
+     */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId=CCS811_setBaseline block="set baseline|%value value"
+    //% weight=39
+    export function setBaseline(value: number): void {
+        let buffer: Buffer = pins.createBuffer(3);
+        buffer[0] = 0x20;
+        buffer[1] = value >> 8 & 0xff;
+        buffer[2] = value & 0xff;
+        pins.i2cWriteBuffer(90, buffer);
+
+    }
+    /**
+    * Read estimated CO2
+    */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId="indenvgeteCO2" block="Value of CO2"
+    //% weight=38
+    export function indenvgeteCO2(): number {
+
+        let i
+
+        i = 0
+
+        while (indenvGasReady() != true) {
+            basic.pause(200)
+            i = i + 1
+            if (i >= 10)
+                return -1;
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        return pins.i2cReadNumber(90, NumberFormat.UInt16BE, false)
+    }
+    /**
+    * Read Total VOC
+    */
+    //% subcategory="Green House"
+    //% group="CO2 and TVOC Sensor (CCS811)"
+    //% blockId="indenvgetTVOC" block="Value of TVOC"
+    //% weight=37
+    export function indenvgetTVOC(): number {
+
+        let i
+
+        i = 0
+
+        while (indenvGasReady() != true) {
+            basic.pause(200)
+            i = i + 1
+            if (i >= 10)
+                return -1;
+        }
+        //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
+        //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
+        //basic.pause(200)
+        pins.i2cWriteNumber(90, 2, NumberFormat.UInt8LE, true)
+        //basic.pause(200)
+        return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
+    }
+    //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
+    //%subcategory="Green House"
+    //%blockId=control_Servo
+    //%block="Turn Servo to %deg degree |at %pin"
+    //% weight=100
+    //% deg.min=0 deg.max=180
+    export function turn_servo(deg: number, pin: AnalogPin): void {
+        pins.servoWritePin(pin, deg)
+        basic.pause(500)
+    }
+
+    //---USB Grow Light--------------------------------------------------
+    export enum growLightNum {
+        //% block="Off"
+        off = 0,
+        //% block="On"
+        on = 1
+    }
+
+
+
+
+    //---USB Grow Light--------------------------------------------------
+
+    //---Water-------------------------------------------
+    //% blockId="smarthon_plantservo"
+    //% block="Set Servo to degree %degree at %pin"
+    //% intensity.min=0 intensity.max=180
+    //% weight=50
+    //% subcategory="Water Garden"
+    export function turnServo(intensity: number, pin: AnalogPin): void {
+
+        pins.servoWritePin(pin, intensity)
+    }
+    /**
+         * get Water Level value (0~100)
+         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
+         */
+    //% blockId="ReadWaterLevel" 
+    //% block="value of water level(0~100) at pin %waterlevelpin"
+    //% blockHidden=false
+    //% subcategory="Water Garden"
+    //% weight=51
+    export function readWaterLevel(waterlevelpin: AnalogPin): number {
+        let voltage = 0;
+        let waterlevel = 0;
+        let readvalue = pins.analogReadPin(waterlevelpin)
+        readvalue -= 20
+        voltage = pins.map(
+            readvalue,
+            0,
+            950,
+            0,
+            100
+        );
+        waterlevel = voltage;
+        return Math.round(waterlevel * 100) / 100
+    }
+
+    /**
+        * get Water temperature value (0~100)
+        * @param watertemppin describe parameter here, eg: AnalogPin.P1
+        */
+    //% blockId="ReadWaterTemp" 
+    //% block="read water temperature at pin %watertemppin"
+    //% blockHidden=false
+    //% subcategory="Water Garden"
+    //% weight=52
+    export function readWaterTemp(watertemppin: AnalogPin): number {
+        // let voltage = 0;
+        let watertemp = 0.0;
+        let sum = 0;
+        let readvalue = 0;
+        for (let i = 0; i < 30; i++) {
+            sum += pins.analogReadPin(watertemppin);
+            basic.pause(10);
+        }
+        readvalue = sum / 30;
+        readvalue -= 399;
+        readvalue /= 15;
+        // voltage = pins.map(
+        //     readvalue,
+        //     0,
+        //     1023,
+        //     218,
+        //     393
+        // );
+        return Math.round(readvalue * 100) / 100
+    }
+    //----Water-----------------------
+    //----end of green Housing-----------------
 
 }
-

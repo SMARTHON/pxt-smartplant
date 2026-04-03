@@ -13,19 +13,17 @@ namespace environment {
     //let numWindTurns = 0
     //let windMPH = 0
 
-    let BH1750_I2C_ADDR = 35;
-    pins.i2cWriteNumber(BH1750_I2C_ADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
+    let BH1750I2CADDR = 35;
+    pins.i2cWriteNumber(BH1750I2CADDR, 0x11, NumberFormat.UInt8BE); //turn on bh1750
 
     /**
     * get light intensity value from bh1750
     */
     //% blockId="readBH1750" 
-    //% block="value of light intensity(Lx) from BH1750" 
+    //% block="light intensity(Lx) from BH1750" 
     //% weight=80
     export function getIntensity(): number {
-        let raw_value = Math.idiv(pins.i2cReadNumber(BH1750_I2C_ADDR, NumberFormat.UInt16BE) * 5, 6);
-
-
+        let raw_value = Math.idiv(pins.i2cReadNumber(BH1750I2CADDR, NumberFormat.UInt16BE) * 5, 6);
 
         return raw_value;
     }
@@ -35,7 +33,7 @@ namespace environment {
      * @param soilmoisturepin describe parameter here, eg: AnalogPin.P1
      */
     //% blockId="readsoilmoisture" 
-    //% block="value of soil moisture(0~100) at pin %soilhumiditypin"
+    //% block="soil moisture(0~100) at pin %soilmoisturepin"
     //% weight=78
     export function readSoilHumidity(soilmoisturepin: AnalogPin): number {
         let voltage = 0;
@@ -74,17 +72,17 @@ namespace environment {
 
     /**
      * Query the temperature and humidity infromation from DHT11 Temperature and Humidity sensor
-     * @param fluSucc when first time read DHT11 get error will keep loop to read, eg:true 
-     * @param lastvalue when read error will display last success value, eg:true
-     * @param wait2Second when read DHT11 get value then wait 2 seconds before read again, eg:false
-     * @param luSucc when read DHT11 get error then will read it again, eg:false
+     * @param fluSucc Keep trying until the first read succeeds when the Micro:bit starts, eg:true 
+     * @param lastvalue If a reading fails, show the last successful temperature & humidity instead of -999, eg:true
+     * @param wait2Second Adds extra delay after each successful reading (recommended by datasheet is ~1.5s), eg:false
+     * @param luSucc If a reading fails, keep retrying until it succeeds (instead of failing immediately), eg:false
      */
-    //% block="Read Temperature & Humidity Sensor at pin %dataPin||First Read until success %fluSucc|Last value %lastvalue|wait 2 second after read success %wait2Second|Every Read until success %luSucc"
+    //% block="temperature & humidity sensor at pin %dataPin||first successful read %fluSucc|use last valid value on error %lastvalue|wait 2 seconds after successful read %wait2Second|retry every read until success %luSucc"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% expandableArgumentMode="enabled"
     //% weight=52
-    export function dht11QueryData(dataPin: DigitalPin, fluSucc: boolean = true, lastvalue: boolean = true,wait2Second: boolean = false, luSucc: boolean = false): void {
+    export function dht11QueryData(dataPin: DigitalPin, fluSucc: boolean = true, lastvalue: boolean = true, wait2Second: boolean = false, luSucc: boolean = false): void {
         //initialize
         _readSuccessful = false
         _errorCode = 0
@@ -163,11 +161,11 @@ namespace environment {
         }
         if ((_readSuccessful == false) && (luSucc == true)) {
             basic.pause(500)
-            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
+            return dht11QueryData(dataPin, fluSucc, lastvalue, wait2Second, luSucc)
         }
         if ((_readSuccessful == false) && (fluSucc == true) && (_firReadSuccess == false)) {
             basic.pause(500)
-            return dht11QueryData(dataPin, lastvalue, luSucc, fluSucc)
+            return dht11QueryData(dataPin, fluSucc, lastvalue, wait2Second, luSucc)
         }
     }
 
@@ -175,7 +173,7 @@ namespace environment {
      * Get the Temperature value (degree in Celsius or Fahrenheit) after queried the Temperature and Humidity sensor
      */
 
-    //% block="Get Temperature |%temp_degree"
+    //% block="temperature|%tempdegree"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=51
     export function readTemperatureData(tempdegree: tempDegree): number {
@@ -191,7 +189,7 @@ namespace environment {
     /**
      * Get the humidity value (in percentage) after queried the Temperature and Humidity sensor
      */
-    //% block="Get Humidity"
+    //% block="humidity"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=50
     export function readHumidityData(): number {
@@ -205,7 +203,7 @@ namespace environment {
     /**
     * Get the error code after query (for debugging)
     */
-    //% block="Get Error Code"
+    //% block="error code"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% weight=49
     export function getErrorCode(): number {
@@ -217,7 +215,7 @@ namespace environment {
     //% subcategory=More
     //% group=Output
     //% blockId="smarthon_waterpump_period"
-    //% block="Set Water pump to intensity %intensity at %pin||for %time sec"
+    //% block="set water pump to intensity %intensity at %pin||for %time sec"
     //% intensity.min=0 intensity.max=1023
     //% weight=390
     export function turnWaterpumpPeriod(intensity: number, pin: AnalogPin, time: number = 0): void {
@@ -229,9 +227,9 @@ namespace environment {
     }
 
     //% subcategory=More
-      //% group=Output
+    //% group=Output
     //% blockId="smarthon_humdifier"
-    //% block="Set Humidifier to intensity %intensity at %pin"
+    //% block="set humidifier to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=380
     export function turnHumdifier(intensity: number, pin: AnalogPin): void {
@@ -539,7 +537,8 @@ namespace environment {
 
     //% subcategory=More
     //% group=LCD
-    //% blockId="lcd_set_address" block="Initialize LCD at I2C"
+    //% blockId="lcd_set_address" 
+    //% block="initialize LCD at I2C"
     //% weight=370
     export function connectLcd(): void {
 
@@ -703,7 +702,7 @@ namespace environment {
 
     //---Green House-----------------------------------
     //% blockId="smarthon_motorfan"
-    //% block="Set Ventilation Fan to intensity %intensity at %pin"
+    //% block="set ventilation fan to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=90
     //% blockHidden=false
@@ -714,7 +713,7 @@ namespace environment {
     }
 
     //--CO2 and TVOC Sensor (CCS811)----------------------------------------------------
-    let TVOC_OK = true
+    let TVOCOK = true
     /* CO2*/
     function indenvGasStatus(): number {
         //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
@@ -728,7 +727,7 @@ namespace environment {
     }
 
     function indenvGasReady(): boolean {
-        if (TVOC_OK != true) {
+        if (TVOCOK != true) {
             return false
         }
         //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
@@ -744,12 +743,13 @@ namespace environment {
     /**
     * CO2 and TVOC Sensor (CCS811) Start
     */
-    //% blockId="indenvStart" block="initialize CO2 & TVOC Sensor at I2C"
+    //% blockId="indenvStart" 
+    //% block="initialize CO2 & TVOC Sensor at I2C"
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% weight=40
     export function indenvStart(): void {
-        TVOC_OK = true
+        TVOCOK = true
         //pins.setPull(DigitalPin.P19, PinPullMode.PullUp)
         //pins.setPull(DigitalPin.P20, PinPullMode.PullUp)
         //basic.pause(200)
@@ -758,7 +758,7 @@ namespace environment {
         pins.i2cWriteNumber(90, 32, NumberFormat.UInt8LE, true)
         //basic.pause(200)
         if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) != 129) {
-            TVOC_OK = false
+            TVOCOK = false
         }
         basic.pause(200)
         /* CJMCU-8118 AppStart CCS811 addr 0x5A register 0xF4 */
@@ -771,13 +771,13 @@ namespace environment {
         pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
         //basic.pause(200)
         if (pins.i2cReadNumber(90, NumberFormat.UInt8LE, false) % 2 != 0) {
-            TVOC_OK = false
+            TVOCOK = false
         }
         basic.pause(200)
         pins.i2cWriteNumber(90, 0, NumberFormat.UInt8LE, true)
         //basic.pause(200)
         if (Math.idiv(pins.i2cReadNumber(90, NumberFormat.UInt8LE, false), 16) != 9) {
-            TVOC_OK = false
+            TVOCOK = false
         }
         basic.pause(200)
     }
@@ -787,7 +787,8 @@ namespace environment {
      */
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
-    //% blockId=CCS811_setBaseline block="set baseline|%value value"
+    //% blockId=CCS811_setBaseline 
+    //% block="set baseline|%value value"
     //% weight=39
     export function setBaseline(value: number): void {
         let buffer: Buffer = pins.createBuffer(3);
@@ -802,7 +803,8 @@ namespace environment {
     */
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
-    //% blockId="indenvgeteCO2" block="Value of CO2"
+    //% blockId="indenvgeteCO2" 
+    //% block="CO2"
     //% weight=38
     export function indenvgeteCO2(): number {
 
@@ -828,7 +830,8 @@ namespace environment {
     */
     //% subcategory="Green House"
     //% group="CO2 and TVOC Sensor (CCS811)"
-    //% blockId="indenvgetTVOC" block="Value of TVOC"
+    //% blockId="indenvgetTVOC" 
+    //% block="TVOC"
     //% weight=37
     export function indenvgetTVOC(): number {
 
@@ -852,10 +855,10 @@ namespace environment {
     //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
     //%subcategory="Green House"
     //%blockId=control_Servo
-    //%block="Turn Servo to %deg degree |at %pin"
+    //%block="turn Servo to %deg degree |at %pin"
     //% weight=100
     //% deg.min=0 deg.max=180
-    export function turn_servo(deg: number, pin: AnalogPin): void {
+    export function turnservo(deg: number, pin: AnalogPin): void {
         pins.servoWritePin(pin, deg)
         basic.pause(500)
     }
@@ -867,10 +870,6 @@ namespace environment {
         //% block="On"
         on = 1
     }
-
-
-
-
     //---USB Grow Light--------------------------------------------------
 
     //---Water-------------------------------------------
@@ -883,12 +882,13 @@ namespace environment {
 
         pins.servoWritePin(pin, intensity)
     }
+
     /**
-         * get Water Level value (0~100)
-         * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
-         */
+     * get Water Level value (0~100)
+     * @param waterlevelpin describe parameter here, eg: AnalogPin.P1
+     */
     //% blockId="ReadWaterLevel" 
-    //% block="value of water level(0~100) at pin %waterlevelpin"
+    //% block="water level(0~100) at pin %waterlevelpin"
     //% blockHidden=false
     //% subcategory="Water Garden"
     //% weight=51
@@ -909,11 +909,11 @@ namespace environment {
     }
 
     /**
-        * get Water temperature value (0~100)
-        * @param watertemppin describe parameter here, eg: AnalogPin.P1
-        */
+    * get Water temperature value (0~100)
+    * @param watertemppin describe parameter here, eg: AnalogPin.P1
+    */
     //% blockId="ReadWaterTemp" 
-    //% block="read water temperature at pin %watertemppin"
+    //% block="water temperature at pin %watertemppin"
     //% blockHidden=false
     //% subcategory="Water Garden"
     //% weight=52

@@ -77,7 +77,7 @@ namespace environment {
      * @param wait2Second Adds extra delay after each successful reading (recommended by datasheet is ~1.5s), eg:false
      * @param luSucc If a reading fails, keep retrying until it succeeds (instead of failing immediately), eg:false
      */
-    //% block="temperature & humidity sensor at pin %dataPin||first successful read %fluSucc|use last valid value on error %lastvalue|wait 2 seconds after successful read %wait2Second|retry every read until success %luSucc"
+    //% block="read temperature & humidity sensor at pin %dataPin||first successful read %fluSucc|use last valid value on error %lastvalue|wait 2 seconds after successful read %wait2Second|retry every read until success %luSucc"
     //% blockId="get_dht11_value"
     //% group="Temperature and Humidity Sensor (DHT11)"
     //% expandableArgumentMode="enabled"
@@ -700,13 +700,13 @@ namespace environment {
     }
     //--------LCD1602-----------------------------------------------------
 
-    //---Green House-----------------------------------
+    //---GreenHouse-----------------------------------
     //% blockId="smarthon_motorfan"
     //% block="set ventilation fan to intensity %intensity at %pin"
     //% intensity.min=0 intensity.max=1023
     //% weight=90
     //% blockHidden=false
-    //% subcategory="Green House"
+    //% subcategory="GreenHouse"
     //% group=""
     export function turnMotorFan(intensity: number, pin: AnalogPin): void {
         pins.analogWritePin(pin, intensity);
@@ -745,7 +745,7 @@ namespace environment {
     */
     //% blockId="indenvStart" 
     //% block="initialize CO2 & TVOC Sensor at I2C"
-    //% subcategory="Green House"
+    //% subcategory="GreenHouse"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% weight=40
     export function indenvStart(): void {
@@ -785,7 +785,7 @@ namespace environment {
      * Set TVOC and CO2 baseline (Baseline should be a decimal value)
      * @param value  , eg: 33915
      */
-    //% subcategory="Green House"
+    //% subcategory="GreenHouse"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% blockId=CCS811_setBaseline 
     //% block="set baseline|%value value"
@@ -801,7 +801,7 @@ namespace environment {
     /**
     * Read estimated CO2
     */
-    //% subcategory="Green House"
+    //% subcategory="GreenHouse"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% blockId="indenvgeteCO2" 
     //% block="CO2"
@@ -828,7 +828,7 @@ namespace environment {
     /**
     * Read Total VOC
     */
-    //% subcategory="Green House"
+    //% subcategory="GreenHouse"
     //% group="CO2 and TVOC Sensor (CCS811)"
     //% blockId="indenvgetTVOC" 
     //% block="TVOC"
@@ -853,9 +853,9 @@ namespace environment {
         return (pins.i2cReadNumber(90, NumberFormat.UInt32BE, false) % 65536)
     }
     //---CO2 and TVOC Sensor (CCS811)------------------------------------------------
-    //%subcategory="Green House"
+    //%subcategory="GreenHouse"
     //%blockId=control_Servo
-    //%block="turn Servo to %deg degree |at %pin"
+    //%block="turn servo to %deg degree |at %pin"
     //% weight=100
     //% deg.min=0 deg.max=180
     export function turnservo(deg: number, pin: AnalogPin): void {
@@ -877,7 +877,7 @@ namespace environment {
     //% block="Set Servo to degree %degree at %pin"
     //% intensity.min=0 intensity.max=180
     //% weight=50
-    //% subcategory="Water Garden"
+    //% subcategory="Aquaponics"
     export function turnServo(intensity: number, pin: AnalogPin): void {
 
         pins.servoWritePin(pin, intensity)
@@ -890,7 +890,7 @@ namespace environment {
     //% blockId="ReadWaterLevel" 
     //% block="water level(0~100) at pin %waterlevelpin"
     //% blockHidden=false
-    //% subcategory="Water Garden"
+    //% subcategory="Aquaponics"
     //% weight=51
     export function readWaterLevel(waterlevelpin: AnalogPin): number {
         let voltage = 0;
@@ -915,7 +915,7 @@ namespace environment {
     //% blockId="ReadWaterTemp" 
     //% block="water temperature at pin %watertemppin"
     //% blockHidden=false
-    //% subcategory="Water Garden"
+    //% subcategory="Aquaponics"
     //% weight=52
     export function readWaterTemp(watertemppin: AnalogPin): number {
         // let voltage = 0;

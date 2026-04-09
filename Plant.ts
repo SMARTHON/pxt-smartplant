@@ -874,7 +874,7 @@ namespace environment {
 
     //---Water-------------------------------------------
     //% blockId="smarthon_plantservo"
-    //% block="Set Servo to degree %degree at %pin"
+    //% block="set servo to degree %degree at %pin"
     //% intensity.min=0 intensity.max=180
     //% weight=50
     //% subcategory="Aquaponics"

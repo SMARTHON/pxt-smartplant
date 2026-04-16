@@ -616,7 +616,8 @@ namespace environment {
       * Displays a text on a LCD1602 in the given position range.
       * The text will be cropped if it is longer than the provided length.
       * If there is space left, it will be filled with pad characters.
-      * @param text the text to show, eg: "Smarthon"
+      * @param text1 the text to show, eg: "Smarthon"
+      * @param text2 the text to show, eg: ""
       * @param startPosition the start position on the LCD, [1 - 32]
       * @param length the maximum space used on the LCD, eg: 16
       * @param option configures alignment, eg: TextOption.Left
@@ -624,20 +625,26 @@ namespace environment {
     //% subcategory=More
     //% group=LCD
     //% blockId="lcd_show_string_on_1602"
-    //% block="LCD show %text | at position %startPosition=lcd_position_1602 with length %length || and %option"
-    //% text.shadowOptions.toString=true
+    //% block="LCD show %text1 %text2 at position %startPosition=lcd_position_1602 with length %length || and %option"
+    //% text1.shadow="text"
+    //% text1.shadowOptions.toString=true
+    //% text2.shadow="text"
+    //% text2.shadowOptions.toString=true
+    //% text2.defl=""
     //% length.min=1 length.max=32 length.fieldOptions.precision=1
     //% expandableArgumentMode="toggle"
     //% inlineInputMode="inline"
     //% weight=360
     export function showStringOnLcd1602(
-        text: string,
+        text1: string,
+        text2: string = "",
         startPosition: number,
         length: number,
         option?: textOption
     ): void {
+        let fullText = text1 + text2;
         updateCharacterBuffer(
-            text,
+            fullText,
             startPosition - 1,
             length,
             16,
@@ -655,7 +662,7 @@ namespace environment {
     //% blockId="lcd_clear_1602" block="LCD clear display"
     //% weight=350
     export function clearLcd1602(): void {
-        showStringOnLcd1602("", 1, 32);
+        showStringOnLcd1602("","", 1, 32);
     }
 
     /**

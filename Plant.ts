@@ -20,7 +20,7 @@ namespace environment {
     * get light intensity value from bh1750
     */
     //% blockId="readBH1750" 
-    //% block="light intensity(Lx) from I2C BH1750" 
+    //% block="light intensity(Lx) from BH1750 at I2C" 
     //% weight=80
     export function getIntensity(): number {
         let raw_value = Math.idiv(pins.i2cReadNumber(BH1750I2CADDR, NumberFormat.UInt16BE) * 5, 6);

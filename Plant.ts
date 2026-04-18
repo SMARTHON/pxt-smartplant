@@ -625,24 +625,20 @@ namespace environment {
     //% subcategory=More
     //% group=LCD
     //% blockId="lcd_show_string_on_1602"
-    //% block="LCD show %text1 %text2 at position %startPosition=lcd_position_1602 with length %length || and %option"
+    //% block="LCD show %text1 at position %startPosition=lcd_position_1602 with length %length || and %option"
     //% text1.shadow="text"
     //% text1.shadowOptions.toString=true
-    //% text2.shadow="text"
-    //% text2.shadowOptions.toString=true
-    //% text2.defl=""
     //% length.min=1 length.max=32 length.fieldOptions.precision=1
     //% expandableArgumentMode="toggle"
     //% inlineInputMode="inline"
     //% weight=360
     export function showStringOnLcd1602(
         text1: string,
-        text2: string = "",
         startPosition: number,
         length: number,
         option?: textOption
     ): void {
-        let fullText = text1 + text2;
+        let fullText = text1;
         updateCharacterBuffer(
             fullText,
             startPosition - 1,
@@ -662,7 +658,7 @@ namespace environment {
     //% blockId="lcd_clear_1602" block="LCD clear display"
     //% weight=350
     export function clearLcd1602(): void {
-        showStringOnLcd1602("","", 1, 32);
+        showStringOnLcd1602("", 1, 32);
     }
 
     /**

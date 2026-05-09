@@ -679,7 +679,7 @@ namespace smartGarden {
 
     /**
      * Turns a LCD position into a number.
-     * @param pos the LCD position, eg: environment.lcdPosition1602.Pos1
+     * @param pos the LCD position, eg: smartGarden.lcdPosition1602.Pos1
      */
     //% subcategory=More
     //% group=LCD

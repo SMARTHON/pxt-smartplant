@@ -1,5 +1,5 @@
 {
-    "name": "pxt-SmartGarden",
+    "name": "smarthon-smartgarden-kit",
     "version": "1.6.3",
     "description": "This is the extension for SmartGarden in PXT",
     "license": "MIT",
@@ -10,10 +10,10 @@
     },
     "files": [
         "README.md",
-        "Garden.ts",
-        "_locales/zh-CN/pxt-SmartGarden-strings.json",
-        "_locales/zh-TW/pxt-SmartGarden-strings.json",
-        "_locales/zh/pxt-SmartGarden-strings.json"
+        "smartgarden.ts",
+        "_locales/zh-CN/smarthon-smartgarden-kit-strings.json",
+        "_locales/zh-TW/smarthon-smartgarden-kit-strings.json",
+        "_locales/zh/smarthon-smartgarden-kit-strings.json"
     ],
     "public": true
 }

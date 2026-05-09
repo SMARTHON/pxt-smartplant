@@ -1,6 +1,6 @@
 {
     "name": "smarthon-smartgarden-kit",
-    "version": "1.6.3",
+    "version": "1.6.4",
     "description": "This is the extension for SmartGarden in PXT",
     "license": "MIT",
     "dependencies": {

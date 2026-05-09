@@ -2,7 +2,7 @@
  * Custom blocks
  */
 //% weight=98 color=#7abb4b icon="\uf06c" block="SmartGarden"
-namespace environment {
+namespace smartEnvironment {
 
     // keep track of services
     //let rainMonitorStarted = false;

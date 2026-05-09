@@ -1,5 +1,5 @@
 {
-  "smartEnvironment|block": "智能花园",
+  "smartEnvironment|block": "SmartGarden",
   "readBH1750|block": "从BH1750获取光强度值(Lx)",
   "readsoilmoisture|block": "从引脚 %soilhumiditypin 获取土壤湿度值(0~100)",
   "tempDegree.degreeCelsius|block": "°C",

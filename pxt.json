@@ -1,6 +1,6 @@
 {
     "name": "pxt-SmartGarden",
-    "version": "1.2.1",
+    "version": "1.6.3",
     "description": "This is the extension for SmartGarden in PXT",
     "license": "MIT",
     "dependencies": {

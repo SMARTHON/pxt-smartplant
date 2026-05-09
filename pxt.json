@@ -1,7 +1,7 @@
 {
-    "name": "pxt-Smartplant",
+    "name": "pxt-SmartGarden",
     "version": "1.2.1",
-    "description": "This is the extension for Smartplant in PXT",
+    "description": "This is the extension for SmartGarden in PXT",
     "license": "MIT",
     "dependencies": {
         "core": "*"	,
@@ -10,7 +10,7 @@
     },
     "files": [
         "README.md",
-        "Plant.ts"
+        "Garden.ts"
     ],
     "public": true
 }

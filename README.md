@@ -8,6 +8,60 @@ Smarthon Smart Garden AIoT Farmer Kit is designed to introduce the fundamentals 
 More product information at [https://smarthon.cc/micro-bit-smart-garden-kit/](https://smarthon.cc/micro-bit-smart-garden-kit/)
 
 ## Component List
+* Smarthon iot:bit
+
+* LCD Screen
+
+* LED grow light
+
+* Fog module
+
+* Water pump
+
+* Soil moisture senson
+
+* Digital light sensor
+
+* Temperature and huidity sensor
+
+* Module wire
+
+* Extension wire
+
+* Screws (6)M3x14mm (10)M4x10mm
+
+* Scres nuts
+
+* Screwdriver
+
+* Blu tack
+
+* Wooden stick
+
+* Soil
+
+* Seed
+
+* Fog accessories
+
+* Pump tube
+
+* Humidifier cup
+
+* Pump cup
+
+* Pot tray
+
+* USB cable
+
+* Battery holder
+
+* Acrylic module
+
+* Plastic mat
+
+## Example Tutorial
+
 
 ## License
 

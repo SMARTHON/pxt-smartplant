@@ -7,7 +7,7 @@ Smarthon Smart Garden AIoT Farmer Kit is designed to introduce the fundamentals 
 
 More product information at [https://smarthon.cc/micro-bit-smart-garden-kit/](https://smarthon.cc/micro-bit-smart-garden-kit/)
 
-You may check the Read the Docs about Smarthon IoT:bit here:[https://smarthon-docs-en.readthedocs.io/en/latest/smartgarden/index.html](https://smarthon-docs-en.readthedocs.io/en/latest/smartgarden/index.html)
+You may check the Read the Docs about Smarthon Smart Garden AIoT Farmer Kit for micro:bit:[https://smarthon-docs-en.readthedocs.io/en/latest/smartgarden/index.html](https://smarthon-docs-en.readthedocs.io/en/latest/smartgarden/index.html)
 
 ## Component List
 * Smarthon iot:bit
